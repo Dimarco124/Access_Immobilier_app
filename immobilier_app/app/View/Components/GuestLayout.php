@@ -7,6 +7,13 @@ use Illuminate\View\View;
 
 class GuestLayout extends Component
 {
+    public $fullWidth;
+
+    public function __construct($fullWidth = false)
+    {
+        $this->fullWidth = $fullWidth;
+    }
+
     /**
      * Get the view / contents that represents the component.
      */

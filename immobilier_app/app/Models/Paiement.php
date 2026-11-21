@@ -19,6 +19,10 @@ class Paiement extends Model
         'date_paiement',
     ];
 
+    protected $casts = [
+        'date_paiement' => 'date',
+    ];
+
     public function agence()
     {
         return $this->belongsTo(Agence::class);

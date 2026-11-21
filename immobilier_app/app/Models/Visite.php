@@ -12,6 +12,7 @@ class Visite extends Model
     protected $fillable = [
         'agence_id',
         'bien_id',
+        'unite_id',
         'locataire_id',
         'date_heure_visite',
         'montant_paye',
@@ -31,6 +32,11 @@ class Visite extends Model
     public function bien()
     {
         return $this->belongsTo(Bien::class);
+    }
+
+    public function unite()
+    {
+        return $this->belongsTo(Unite::class);
     }
 
     public function locataire()

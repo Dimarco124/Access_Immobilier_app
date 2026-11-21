@@ -24,14 +24,22 @@ class AgencyRegisterController extends Controller
             // Agence
             'nom_agence' => 'required|string|max:255',
             'ville' => 'required|string|max:255',
+            'adresse' => 'required|string|max:255',
             'telephone_agence' => 'required|string',
             'email_agence' => 'required|email|unique:agences,email',
-            'description' => 'nullable|string',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'numero_agrement' => 'nullable|string|max:255',
+            'compte_contribuable' => 'nullable|string|max:255',
+            'site_web' => 'nullable|url|max:255',
+            'description' => 'required|string',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5 Mo max, optionnel
             // Admin User
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+        ], [
+            'logo.max' => 'Le logo ne doit pas dépasser 5 Mo.',
+            'logo.image' => 'Le logo doit être une image.',
+            'logo.mimes' => 'Le logo doit être au format : jpeg, png, jpg, gif ou webp.',
         ]);
 
         // 1. Gérer le logo avant la création
@@ -42,9 +50,13 @@ class AgencyRegisterController extends Controller
 
         $agence = Agence::create([
             'nom' => $request->nom_agence,
-            'adresse' => $request->ville,
+            'adresse' => $request->adresse . ', ' . $request->ville,
             'telephone' => $request->telephone_agence,
             'email' => $request->email_agence,
+            'numero_agrement' => $request->numero_agrement,
+            'compte_contribuable' => $request->compte_contribuable,
+            'site_web' => $request->site_web,
+            'description' => $request->description,
             'logo' => $logoPath,
             'taux_tva' => 18.00,
             'devise' => 'XOF',
@@ -66,12 +78,14 @@ class AgencyRegisterController extends Controller
         Role::firstOrCreate(['name' => 'comptable']);
         Role::firstOrCreate(['name' => 'proprietaire']);
         Role::firstOrCreate(['name' => 'locataire']);
+        Role::firstOrCreate(['name' => 'team_member']);
 
         $user->assignRole('admin');
 
         // 3. Connecter l'utilisateur
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('success', 'Votre agence a été configurée avec succès !');
+        // 4. Rediriger vers la configuration d'équipe
+        return redirect()->route('team-setup.choose-mode')->with('success', 'Votre agence a été créée ! Configurons maintenant votre équipe.');
     }
 }

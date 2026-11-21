@@ -42,6 +42,13 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // CORRECTION CRITIQUE : Assigner un rôle par défaut
+        // Sans rôle, l'utilisateur n'a pas d'accès défini
+        // Note: Cette route ne devrait pas être utilisée en production
+        // Utiliser plutôt AgencyRegisterController pour admin ou créer via admin pour autres rôles
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'locataire']);
+        $user->assignRole('locataire'); // Rôle par défaut le plus restrictif
+
         event(new Registered($user));
 
         Auth::login($user);

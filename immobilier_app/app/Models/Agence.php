@@ -15,10 +15,18 @@ class Agence extends Model
         'adresse',
         'telephone',
         'email',
+        'numero_agrement',
+        'compte_contribuable',
+        'site_web',
+        'description',
         'taux_tva',
         'devise',
         'parametres_paiement',
         'statut'
+    ];
+
+    protected $casts = [
+        'parametres_paiement' => 'array',
     ];
 
     public function users()
@@ -69,5 +77,15 @@ class Agence extends Model
     public function comptesBancaires()
     {
         return $this->hasMany(CompteBancaire::class);
+    }
+
+    public function teamConfig()
+    {
+        return $this->hasOne(AgencyTeamConfig::class);
+    }
+
+    public function teamMembers()
+    {
+        return $this->hasMany(TeamMember::class);
     }
 }

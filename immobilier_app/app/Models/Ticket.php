@@ -13,10 +13,12 @@ class Ticket extends Model
         'agence_id',
         'locataire_id',
         'bien_id',
+        'unite_id',
         'objet',
         'description_probleme',
         'priorite',
         'statut',
+        'type_intervention',
     ];
 
     public function agence()
@@ -32,6 +34,11 @@ class Ticket extends Model
     public function bien()
     {
         return $this->belongsTo(Bien::class);
+    }
+
+    public function unite()
+    {
+        return $this->belongsTo(Unite::class);
     }
 
     public function messages()

@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\AppNotification;
 use Illuminate\Notifications\Notifiable;
 
 use Spatie\Permission\Traits\HasRoles;
@@ -43,6 +44,16 @@ class User extends Authenticatable
         return $this->hasOne(Proprietaire::class);
     }
 
+    public function appNotifications()
+    {
+        return $this->hasMany(AppNotification::class);
+    }
+
+    public function unreadAppNotifications()
+    {
+        return $this->hasMany(AppNotification::class)->where('read', false);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -62,7 +73,29 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Vérifie si l'utilisateur a accès à un module au niveau spécifié.
+     * Pour les admins, retourne toujours true.
+     * Pour les membres d'équipe, vérifie leurs autorisations.
+     */
+    public function hasModuleAccess(string $moduleCode, string $minimumLevel = 'viewer'): bool
+    {
+        if ($this->hasRole('admin')) {
+            return true;
+        }
+
+        $teamMember = \App\Models\TeamMember::with('modules')
+                        ->where('user_id', $this->id)
+                        ->where('status', 'active')
+                        ->first();
+
+        if (!$teamMember) {
+            return false;
+        }
+
+        return $teamMember->hasModuleAccess($moduleCode, $minimumLevel);
     }
 }

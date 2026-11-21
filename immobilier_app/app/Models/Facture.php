@@ -12,14 +12,23 @@ class Facture extends Model
     protected $fillable = [
         'agence_id',
         'contrat_id',
+        'type_facture',
         'numero_facture',
         'mois_facture',
         'montant_hors_taxe',
         'montant_tva',
         'montant_total_du',
+        'montant_frais_retard',
         'montant_deja_paye',
         'date_echeance',
         'statut',
+        'frais_dossier',
+        'montant_caution',
+        'montant_loyer_initial',
+    ];
+
+    protected $casts = [
+        'date_echeance' => 'date',
     ];
 
     public function agence()

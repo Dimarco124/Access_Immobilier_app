@@ -55,11 +55,7 @@
                             <x-input-error :messages="$errors->get('loyer_mensuel')" class="mt-2" />
                         </div>
 
-                        <div>
-                            <x-input-label for="prix_visite" :value="__('Prix de la visite ('.Auth::user()->agence->devise.')')" />
-                            <x-text-input id="prix_visite" name="prix_visite" type="number" step="0.01" class="mt-1 block w-full" value="{{ old('prix_visite', $bien->prix_visite) }}" />
-                            <x-input-error :messages="$errors->get('prix_visite')" class="mt-2" />
-                        </div>
+
 
                         <div>
                             <x-input-label for="statut" :value="__('Statut *')" />

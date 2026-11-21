@@ -26,13 +26,20 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Bloquer la modification de l'email pour les membres d'équipe
+        if ($user->hasRole('team_member') && $request->email !== $user->email) {
+            return Redirect::route('profile.edit')->withErrors(['email' => 'Votre adresse email est gérée par votre agence et ne peut être modifiée.']);
         }
 
-        $request->user()->save();
+        $user->fill($request->validated());
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -42,6 +49,11 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Les membres d'équipe ne peuvent pas supprimer leur propre compte
+        if ($request->user()->hasRole('team_member')) {
+            return Redirect::route('profile.edit')->withErrors(['account' => 'Votre compte est géré par votre agence. Veuillez contacter un administrateur.']);
+        }
+
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);

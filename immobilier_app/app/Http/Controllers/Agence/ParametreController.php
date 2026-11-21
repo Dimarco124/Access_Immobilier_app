@@ -45,6 +45,28 @@ class ParametreController extends Controller
         return redirect()->back()->with('success', 'Paramètres mis à jour avec succès.');
     }
 
+    public function updatePaiement(Request $request)
+    {
+        $agence = Auth::user()->agence;
+
+        $request->validate([
+            'jour_echeance_loyer' => 'required|integer|min:1|max:31',
+            'jours_grace_retard' => 'required|integer|min:0',
+            'frais_retard_type' => 'required|string|in:pourcentage,fixe',
+            'frais_retard_valeur' => 'required|numeric|min:0',
+        ]);
+
+        $parametres = $agence->parametres_paiement ?? [];
+        $parametres['jour_echeance_loyer'] = $request->jour_echeance_loyer;
+        $parametres['jours_grace_retard'] = $request->jours_grace_retard;
+        $parametres['frais_retard_type'] = $request->frais_retard_type;
+        $parametres['frais_retard_valeur'] = $request->frais_retard_valeur;
+
+        $agence->update(['parametres_paiement' => $parametres]);
+
+        return redirect()->back()->with('success', 'Paramètres de paiement mis à jour.');
+    }
+
     public function addCompteBancaire(Request $request)
     {
         $request->validate([
