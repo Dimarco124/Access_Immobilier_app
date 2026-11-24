@@ -1,8 +1,26 @@
 <x-guest-layout :fullWidth="true">
-    <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8" x-data="registrationForm()">
+    <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-8 sm:py-12 sm:px-6 lg:px-8" x-data="registrationForm()">
+        <!-- Top Navigation Bar avec bouton Retour -->
+        <div class="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-8 flex items-center justify-between">
+            <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:text-blue-600 hover:border-blue-200 shadow-sm transition-all hover:-translate-x-0.5 group">
+                <i class="fas fa-arrow-left text-[11px] text-gray-400 group-hover:text-blue-600 transition-transform group-hover:-translate-x-1"></i>
+                <span>Retour à l'accueil</span>
+            </a>
+
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-medium text-gray-500 hidden sm:inline">Déjà inscrit ?</span>
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-extrabold uppercase tracking-wider transition-colors">
+                    <i class="fas fa-sign-in-alt text-[11px]"></i>
+                    <span>Connexion</span>
+                </a>
+            </div>
+        </div>
+
         <div class="sm:mx-auto sm:w-full sm:max-w-4xl">
             <div class="flex justify-center">
-                <span class="text-5xl font-black text-slate-900 tracking-tighter uppercase">ONE.Immo</span>
+                <a href="{{ url('/') }}" class="inline-block transition-transform hover:scale-105">
+                    <img src="{{ asset('images/logo.svg') }}" alt="Habitat Immobilier" class="h-14 w-auto">
+                </a>
             </div>
             <h2 class="mt-6 text-center text-4xl font-black text-gray-900 uppercase tracking-tight">
                 Inscrire mon Agence

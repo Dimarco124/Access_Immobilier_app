@@ -15,8 +15,18 @@
         <!-- Right side: Form -->
         <div class="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24 bg-white z-10">
             <div class="mx-auto w-full max-w-md lg:w-[480px]">
+                <!-- Bouton Retour à l'accueil -->
+                <div class="mb-8">
+                    <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50 shadow-sm transition-all hover:-translate-x-0.5 group">
+                        <i class="fas fa-arrow-left text-[11px] text-gray-400 group-hover:text-blue-600 transition-transform group-hover:-translate-x-1"></i>
+                        <span>Retour à l'accueil</span>
+                    </a>
+                </div>
+
                 <div>
-                    <span class="text-4xl font-black text-slate-900 tracking-tighter uppercase">ONE.Immo</span>
+                    <a href="{{ url('/') }}" class="inline-block transition-transform hover:scale-105">
+                        <img src="{{ asset('images/logo.svg') }}" alt="Habitat Immobilier" class="h-12 w-auto">
+                    </a>
                     <h2 class="mt-8 text-4xl font-black text-slate-900 uppercase tracking-tight leading-none">Inscription</h2>
                     <p class="mt-4 text-lg text-slate-500 font-medium">
                         Créez votre compte utilisateur pour accéder aux services immobiliers premium.

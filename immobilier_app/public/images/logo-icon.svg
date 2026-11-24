@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="hab_grad_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="50%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="hab_grad_accent" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#60A5FA"/>
+    </linearGradient>
+    <linearGradient id="hab_gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="hab_glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#1E3A8A" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <rect x="6" y="6" width="88" height="88" rx="24" fill="url(#hab_grad_bg)" filter="url(#hab_glow)"/>
+  
+  <path d="M20 38 L50 16 L80 38" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <rect x="25" y="34" width="11" height="40" rx="5.5" fill="#FFFFFF"/>
+  <rect x="64" y="34" width="11" height="40" rx="5.5" fill="#FFFFFF"/>
+  
+  <rect x="33" y="49" width="34" height="9" rx="4.5" fill="url(#hab_grad_accent)"/>
+  
+  <circle cx="50" cy="34" r="5" fill="url(#hab_gold)"/>
+</svg>

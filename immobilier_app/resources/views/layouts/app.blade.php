@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'ONE.Immo') }}</title>
+    <title>{{ config('app.name', 'Habitat Immobilier') }}</title>
+
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
     <!-- Scripts & Styles (100% Offline Bundle) -->
     <!-- Scripts -->
@@ -280,9 +283,10 @@
                             :class="menuOpen ? 'fa-times text-blue-600' : 'fa-bars-staggered text-slate-700'"></i>
                     </button>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <img src="{{ asset('images/logo-icon.svg') }}" alt="Habitat" class="w-6 h-6 rounded-lg object-contain">
                         <span class="font-black text-sm text-slate-900 tracking-tight uppercase">
-                            {{ Auth::user()->agence->nom ?? 'ONE.Immo' }}
+                            {{ Auth::user()->agence->nom ?? 'Habitat Immobilier' }}
                         </span>
                         @if(isset($header))
                             <div class="hidden md:flex items-center text-sm font-medium text-slate-400">

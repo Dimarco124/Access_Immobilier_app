@@ -82,15 +82,15 @@
     <div class="shrink-0 pb-3 mb-1 border-b border-white/20">
         <div class="flex items-center justify-between">
             <a href="{{ route('dashboard') }}" @click="sessionStorage.setItem('menuOpenAfterNav', 'true')" class="flex items-center gap-2.5 group min-w-0">
-                <div class="w-9 h-9 rounded-xl bg-white text-[#3B5BDB] flex items-center justify-center font-black text-base shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                <div class="w-9 h-9 rounded-xl bg-white text-[#3B5BDB] flex items-center justify-center font-black text-base shadow-sm shrink-0 group-hover:scale-105 transition-transform overflow-hidden p-1">
                     @if(Auth::user()->agence && Auth::user()->agence->logo)
-                        <img src="{{ Storage::url(Auth::user()->agence->logo) }}" alt="Logo" class="h-5 w-auto object-contain">
+                        <img src="{{ Storage::url(Auth::user()->agence->logo) }}" alt="Logo" class="h-full w-full object-contain">
                     @else
-                        <i class="fas fa-building text-sm"></i>
+                        <img src="{{ asset('images/logo-icon.svg') }}" alt="Habitat" class="h-full w-full object-contain">
                     @endif
                 </div>
                 <div class="min-w-0">
-                    <span class="block font-black text-xs sm:text-sm uppercase tracking-tight text-white truncate">{{ Auth::user()->agence->nom ?? 'ONE.Immo' }}</span>
+                    <span class="block font-black text-xs sm:text-sm uppercase tracking-tight text-white truncate">{{ Auth::user()->agence->nom ?? 'Habitat Immo' }}</span>
                     <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-white/75 mt-0.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-300"></span>
                         {{ Auth::user()->roles->first()->name ?? 'Utilisateur' }}

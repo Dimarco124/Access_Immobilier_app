@@ -4,7 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>E-Immo - L'Excellence en Gestion Immobilière</title>
+    <title>Habitat Immobilier - L'Excellence en Gestion Immobilière</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,12 +28,9 @@
     <nav class="fixed w-full z-50 transition-all duration-300 glass border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl">
-                        <i class="fas fa-home text-xl"></i>
-                    </div>
-                    <span class="text-3xl font-black text-blue-600 tracking-tighter uppercase">E-Immo</span>
-                </div>
+                <a href="{{ url('/') }}" class="flex items-center gap-3 group">
+                    <img src="{{ asset('images/logo.svg') }}" alt="Habitat Immobilier" class="h-11 w-auto transition-transform group-hover:scale-105">
+                </a>
                 <div class="hidden md:flex items-center gap-10">
                     <a href="#features" class="text-sm font-bold text-gray-500 hover:text-blue-600 transition uppercase tracking-widest">Solutions</a>
                     <a href="#about" class="text-sm font-bold text-gray-500 hover:text-blue-600 transition uppercase tracking-widest">À Propos</a>
@@ -172,10 +171,7 @@
             <div class="grid md:grid-cols-4 gap-12 mb-16">
                 <div class="col-span-2">
                     <div class="flex items-center gap-2 mb-6">
-                        <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-building text-white text-xs"></i>
-                        </div>
-                        <span class="text-xl font-black text-slate-900 tracking-tighter uppercase">E-Immo</span>
+                        <img src="{{ asset('images/logo.svg') }}" alt="Habitat Immobilier" class="h-10 w-auto">
                     </div>
                     <p class="text-slate-400 text-sm max-w-sm leading-relaxed font-medium">
                         La plateforme de référence pour la gestion immobilière moderne. Conçue pour l'excellence opérationnelle et la satisfaction client.
@@ -199,7 +195,7 @@
                 </div>
             </div>
             <div class="pt-8 border-t border-gray-50 flex flex-col md:row justify-between items-center gap-4">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">&copy; 2026 E-Immo Software Ecosystem. All Rights Reserved.</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">&copy; {{ date('Y') }} Habitat Immobilier. Tous droits réservés.</p>
                 <div class="flex gap-6 text-gray-400">
                     <a href="#"><i class="fab fa-facebook-f hover:text-blue-600 transition"></i></a>
                     <a href="#"><i class="fab fa-linkedin-in hover:text-blue-600 transition"></i></a>

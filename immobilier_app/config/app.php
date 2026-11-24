@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'ONE.Immo'),
+    'name' => env('APP_NAME', 'Habitat Immobilier'),
 
     /*
     |--------------------------------------------------------------------------
