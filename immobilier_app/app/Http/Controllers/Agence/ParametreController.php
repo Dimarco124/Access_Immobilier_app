@@ -33,11 +33,10 @@ class ParametreController extends Controller
 
         $data = $request->except(['logo', '_token', '_method']);
 
-        if ($request->hasFile('logo')) {
-            if ($agence->logo) {
-                Storage::disk('public')->delete($agence->logo);
-            }
-            $data['logo'] = $request->file('logo')->store('logos', 'public');
+        if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
+            $file = $request->file('logo');
+            $mime = $file->getMimeType();
+            $data['logo'] = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
         }
 
         $agence->update($data);

@@ -29,6 +29,32 @@ class Agence extends Model
         'parametres_paiement' => 'array',
     ];
 
+    /**
+     * Obtenir l'URL ou Data URI du logo de manière pérenne
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        if (empty($this->logo)) {
+            return null;
+        }
+
+        // Si stocké en Base64 Data URI ou URL absolue
+        if (str_starts_with($this->logo, 'data:') || str_starts_with($this->logo, 'http://') || str_starts_with($this->logo, 'https://')) {
+            return $this->logo;
+        }
+
+        // Si stocké sur le disque public local
+        try {
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->logo)) {
+                return \Illuminate\Support\Facades\Storage::url($this->logo);
+            }
+        } catch (\Throwable $e) {
+            // Ignorer si disque inaccessible
+        }
+
+        return null;
+    }
+
     public function users()
     {
         return $this->hasMany(User::class);

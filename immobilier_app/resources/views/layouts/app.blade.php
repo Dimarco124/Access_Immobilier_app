@@ -284,7 +284,13 @@
                     </button>
 
                     <div class="flex items-center gap-2.5">
-                        <img src="{{ asset('images/logo-icon.svg') }}" alt="Habitat" class="w-6 h-6 rounded-lg object-contain">
+                        @if(Auth::user()->agence && Auth::user()->agence->logo_url)
+                            <img src="{{ Auth::user()->agence->logo_url }}" alt="{{ Auth::user()->agence->nom }}" class="w-8 h-8 rounded-lg object-contain bg-white p-0.5 border border-slate-200 shadow-xs">
+                        @else
+                            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-xs shadow-xs">
+                                <i class="fas fa-building text-xs"></i>
+                            </div>
+                        @endif
                         <span class="font-black text-sm text-slate-900 tracking-tight uppercase">
                             {{ Auth::user()->agence->nom ?? 'Habitat Immobilier' }}
                         </span>

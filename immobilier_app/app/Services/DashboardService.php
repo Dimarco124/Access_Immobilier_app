@@ -181,14 +181,15 @@ class DashboardService
     private function calculateTotalDepositsHeld(int $agenceId): float
     {
         $contrats = Contrat::where('agence_id', $agenceId)
-            ->with(['factures' => function ($q) {
-                $q->whereIn('type_facture', ['Initial', 'Caution']);
-            }])
+            ->with(['factures'])
             ->get();
 
         $totalDetenu = 0;
         foreach ($contrats as $contrat) {
-            $factureInitiale = $contrat->factures->first();
+            $factureInitiale = $contrat->factures->first(function ($f) {
+                return in_array($f->type_facture, ['Initial', 'Caution']);
+            });
+
             if ($factureInitiale) {
                 if ($factureInitiale->statut === 'Payée') {
                     $cautionRecue = (float)$contrat->montant_caution;
@@ -199,7 +200,7 @@ class DashboardService
                     $cautionRecue = 0;
                 }
             } else {
-                $cautionRecue = $contrat->statut === 'Actif' ? (float)$contrat->montant_caution : 0;
+                $cautionRecue = 0;
             }
 
             $cautionDisponible = max(0, $cautionRecue - (float)$contrat->montant_caution_rembourse - (float)$contrat->montant_caution_retenu);

@@ -83,8 +83,8 @@
         <div class="flex items-center justify-between">
             <a href="{{ route('dashboard') }}" @click="sessionStorage.setItem('menuOpenAfterNav', 'true')" class="flex items-center gap-2.5 group min-w-0">
                 <div class="w-9 h-9 rounded-xl bg-white text-[#3B5BDB] flex items-center justify-center font-black text-base shadow-sm shrink-0 group-hover:scale-105 transition-transform overflow-hidden p-1">
-                    @if(Auth::user()->agence && Auth::user()->agence->logo)
-                        <img src="{{ Storage::url(Auth::user()->agence->logo) }}" alt="Logo" class="h-full w-full object-contain">
+                    @if(Auth::user()->agence && Auth::user()->agence->logo_url)
+                        <img src="{{ Auth::user()->agence->logo_url }}" alt="Logo" class="h-full w-full object-contain">
                     @else
                         <img src="{{ asset('images/logo-icon.svg') }}" alt="Habitat" class="h-full w-full object-contain">
                     @endif

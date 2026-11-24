@@ -74,8 +74,8 @@
                         <div class="md:col-span-2">
                             <x-input-label for="logo" :value="__('Logo de l\'agence')" class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2" />
                             <div class="flex items-center gap-4 mt-2">
-                                @if($agence->logo)
-                                    <img src="{{ Storage::url($agence->logo) }}" alt="Logo" class="h-16 w-16 object-contain rounded-lg border border-slate-100 p-1 bg-slate-50">
+                                @if($agence->logo_url)
+                                    <img src="{{ $agence->logo_url }}" alt="Logo" class="h-16 w-16 object-contain rounded-lg border border-slate-100 p-1 bg-slate-50">
                                 @endif
                                 <input type="file" id="logo" name="logo" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all" />
                             </div>

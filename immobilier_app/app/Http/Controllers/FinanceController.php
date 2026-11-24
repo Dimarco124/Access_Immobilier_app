@@ -44,24 +44,13 @@ class FinanceController extends Controller
 
         // 1. GESTION DES CAUTIONS (uniquement celles réellement encaissées)
         $cautions = Contrat::where('agence_id', $agence->id)
-            ->with(['locataire.user', 'bien.familleDeBien', 'factures' => function ($q) {
-                $q->whereIn('type_facture', ['Initial', 'Caution']);
-            }])
-            ->selectRaw('
-                id,
-                agence_id,
-                locataire_id,
-                bien_id,
-                montant_caution,
-                montant_caution_rembourse,
-                montant_caution_retenu,
-                statut,
-                date_debut,
-                date_cloture
-            ')
+            ->with(['locataire.user', 'bien.familleDeBien', 'factures'])
             ->get()
             ->map(function ($contrat) {
-                $factureInitiale = $contrat->factures->first();
+                $factureInitiale = $contrat->factures->first(function ($f) {
+                    return in_array($f->type_facture, ['Initial', 'Caution']);
+                });
+
                 if ($factureInitiale) {
                     if ($factureInitiale->statut === 'Payée') {
                         $cautionRecue = (float)$contrat->montant_caution;
@@ -69,10 +58,11 @@ class FinanceController extends Controller
                         $ratio = (float)$contrat->montant_caution / (float)$factureInitiale->montant_total_du;
                         $cautionRecue = min((float)$contrat->montant_caution, (float)$factureInitiale->montant_deja_paye * $ratio);
                     } else {
+                        // Facture non payée => 0 caution détenue
                         $cautionRecue = 0;
                     }
                 } else {
-                    $cautionRecue = $contrat->statut === 'Actif' ? (float)$contrat->montant_caution : 0;
+                    $cautionRecue = 0;
                 }
 
                 $contrat->caution_payee = $cautionRecue;

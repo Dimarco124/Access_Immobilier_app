@@ -42,10 +42,11 @@ class AgencyRegisterController extends Controller
             'logo.mimes' => 'Le logo doit être au format : jpeg, png, jpg, gif ou webp.',
         ]);
 
-        // 1. Gérer le logo avant la création
+        // 1. Gérer le logo avant la création (stockage pérenne en Base64 Data URI)
         $logoPath = null;
         if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
-            $logoPath = $request->file('logo')->store('logos', 'public');
+            $file = $request->file('logo');
+            $logoPath = 'data:' . $file->getMimeType() . ';base64,' . base64_encode(file_get_contents($file->getRealPath()));
         }
 
         $agence = Agence::create([
