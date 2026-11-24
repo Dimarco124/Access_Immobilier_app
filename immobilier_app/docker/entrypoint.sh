@@ -14,7 +14,9 @@ php artisan route:cache || true
 php artisan view:cache || true
 
 # Fix permissions
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build || true
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build || true
 
 # Start supervisor (runs nginx + php-fpm)
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+
