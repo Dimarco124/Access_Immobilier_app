@@ -42,11 +42,14 @@ class FinanceController extends Controller
             ];
         }
 
-        // 1. GESTION DES CAUTIONS
+        // 1. GESTION DES CAUTIONS (uniquement celles réellement encaissées)
         $cautions = Contrat::where('agence_id', $agence->id)
-            ->with(['locataire.user', 'bien.familleDeBien'])
+            ->with(['locataire.user', 'bien.familleDeBien', 'factures' => function ($q) {
+                $q->whereIn('type_facture', ['Initial', 'Caution']);
+            }])
             ->selectRaw('
                 id,
+                agence_id,
                 locataire_id,
                 bien_id,
                 montant_caution,
@@ -58,11 +61,26 @@ class FinanceController extends Controller
             ')
             ->get()
             ->map(function ($contrat) {
-                $contrat->caution_disponible = $contrat->montant_caution - $contrat->montant_caution_rembourse - $contrat->montant_caution_retenu;
+                $factureInitiale = $contrat->factures->first();
+                if ($factureInitiale) {
+                    if ($factureInitiale->statut === 'Payée') {
+                        $cautionRecue = (float)$contrat->montant_caution;
+                    } elseif ($factureInitiale->montant_deja_paye > 0 && $factureInitiale->montant_total_du > 0) {
+                        $ratio = (float)$contrat->montant_caution / (float)$factureInitiale->montant_total_du;
+                        $cautionRecue = min((float)$contrat->montant_caution, (float)$factureInitiale->montant_deja_paye * $ratio);
+                    } else {
+                        $cautionRecue = 0;
+                    }
+                } else {
+                    $cautionRecue = $contrat->statut === 'Actif' ? (float)$contrat->montant_caution : 0;
+                }
+
+                $contrat->caution_payee = $cautionRecue;
+                $contrat->caution_disponible = max(0, $cautionRecue - (float)$contrat->montant_caution_rembourse - (float)$contrat->montant_caution_retenu);
                 return $contrat;
             });
 
-        $totalCautions = $cautions->sum('montant_caution');
+        $totalCautions = $cautions->sum('caution_payee');
         $totalCautionsDisponibles = $cautions->sum('caution_disponible');
 
         // 2. SOLDE DES PROPRIÉTAIRES

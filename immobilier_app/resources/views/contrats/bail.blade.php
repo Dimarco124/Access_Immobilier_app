@@ -44,7 +44,10 @@
                 $avanceMois = (int)($contrat->nombre_mois_avance ?? 0);
                 $loyerAvanceTotal = $loyer * $avanceMois;
                 $fraisDossier = (float)($contrat->frais_dossier ?? 0);
-                $totalSign = $caution + $loyerAvanceTotal + $fraisDossier;
+                $factureInit = $contrat->factures->first(fn($f) => $f->type_facture === 'Initial');
+                $tauxTVA = (float)($contrat->agence->taux_tva ?? 0);
+                $montantTVA = $factureInit ? (float)$factureInit->montant_tva : ((($loyerAvanceTotal + $fraisDossier) * $tauxTVA) / 100);
+                $totalSign = $factureInit ? (float)$factureInit->montant_total_du : ($caution + $loyerAvanceTotal + $fraisDossier + $montantTVA);
                 $devise = $contrat->agence->devise ?? 'XOF';
                 $numContrat = $contrat->numero_contrat ?? ('CB-' . str_pad($contrat->id, 6, '0', STR_PAD_LEFT));
                 $securityCode = 'SEC-' . strtoupper(substr(md5($contrat->id . $numContrat . $contrat->created_at), 0, 8));
@@ -358,6 +361,21 @@
                                         <td class="px-3 py-2.5 text-right text-slate-400">—</td>
                                         <td class="px-4 py-2.5 text-right font-black text-slate-900 font-mono">
                                             {{ number_format($fraisDossier, 0, ',', ' ') }} {{ $devise }}
+                                        </td>
+                                    </tr>
+                                    @endif
+
+                                    <!-- T.V.A. (si applicable) -->
+                                    @if($montantTVA > 0)
+                                    <tr>
+                                        <td class="px-4 py-2.5">
+                                            <p class="font-bold text-slate-900">T.V.A. ({{ number_format($tauxTVA, 0) }}%)</p>
+                                            <p class="text-[9px] text-slate-500">Taxe sur la valeur ajoutée sur loyer et honoraires</p>
+                                        </td>
+                                        <td class="px-3 py-2.5 text-center text-slate-600 font-medium">{{ number_format($tauxTVA, 0) }}%</td>
+                                        <td class="px-3 py-2.5 text-right text-slate-400">—</td>
+                                        <td class="px-4 py-2.5 text-right font-black text-slate-900 font-mono">
+                                            {{ number_format($montantTVA, 0, ',', ' ') }} {{ $devise }}
                                         </td>
                                     </tr>
                                     @endif

@@ -176,12 +176,37 @@ class DashboardService
     }
 
     /**
-     * Calcule le total des cautions détenues
+     * Calcule le total des cautions réellement détenues (uniquement encaissées)
      */
     private function calculateTotalDepositsHeld(int $agenceId): float
     {
-        return Contrat::where('agence_id', $agenceId)->sum('montant_caution')
-            - Contrat::where('agence_id', $agenceId)->sum('montant_caution_rembourse');
+        $contrats = Contrat::where('agence_id', $agenceId)
+            ->with(['factures' => function ($q) {
+                $q->whereIn('type_facture', ['Initial', 'Caution']);
+            }])
+            ->get();
+
+        $totalDetenu = 0;
+        foreach ($contrats as $contrat) {
+            $factureInitiale = $contrat->factures->first();
+            if ($factureInitiale) {
+                if ($factureInitiale->statut === 'Payée') {
+                    $cautionRecue = (float)$contrat->montant_caution;
+                } elseif ($factureInitiale->montant_deja_paye > 0 && $factureInitiale->montant_total_du > 0) {
+                    $ratio = (float)$contrat->montant_caution / (float)$factureInitiale->montant_total_du;
+                    $cautionRecue = min((float)$contrat->montant_caution, (float)$factureInitiale->montant_deja_paye * $ratio);
+                } else {
+                    $cautionRecue = 0;
+                }
+            } else {
+                $cautionRecue = $contrat->statut === 'Actif' ? (float)$contrat->montant_caution : 0;
+            }
+
+            $cautionDisponible = max(0, $cautionRecue - (float)$contrat->montant_caution_rembourse - (float)$contrat->montant_caution_retenu);
+            $totalDetenu += $cautionDisponible;
+        }
+
+        return $totalDetenu;
     }
 
     /**
