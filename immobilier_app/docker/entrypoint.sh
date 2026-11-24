@@ -8,6 +8,10 @@ php artisan storage:link || true
 echo "Running migrations..."
 php artisan migrate --force || echo "Migration skipped or completed"
 
+# Seed default modules and roles
+echo "Seeding default modules..."
+php artisan db:seed --class=Database\\Seeders\\ModulesSeeder --force || echo "Modules already seeded or skipped"
+
 # Cache configurations for speed in production
 php artisan config:cache || true
 php artisan route:cache || true
