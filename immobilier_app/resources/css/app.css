@@ -454,6 +454,11 @@
   }
 }
 
+#page-content.page-exiting {
+  opacity: 0.6;
+  transition: opacity 0.18s ease;
+}
+
 /* ===== TAB TRANSITIONS ===== */
 .tab-content-pane {
   display: none;

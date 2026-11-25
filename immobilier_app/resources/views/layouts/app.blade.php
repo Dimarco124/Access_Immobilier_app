@@ -166,6 +166,23 @@
             }
         }
 
+        html.nav-opening-drawer #app-surface {
+            transform: translateX(300px) scale(0.86) !important;
+            border-radius: 36px !important;
+        }
+        @media (max-width: 639px) {
+            html.nav-opening-drawer #app-surface {
+                transform: translateX(260px) scale(0.88) !important;
+                border-radius: 28px !important;
+            }
+        }
+        @media (min-width: 640px) and (max-width: 767px) {
+            html.nav-opening-drawer #app-surface {
+                transform: translateX(280px) scale(0.86) !important;
+                border-radius: 36px !important;
+            }
+        }
+
         .fade-enter {
             opacity: 0;
             transform: translateY(4px);
@@ -212,14 +229,30 @@
             }
         }
     </style>
+
+    <script>
+        if (sessionStorage.getItem('menuOpenAfterNav') === 'true') {
+            document.documentElement.classList.add('nav-opening-drawer');
+        }
+    </script>
 </head>
 
 <body class="font-sans antialiased overflow-hidden" 
-    x-data="{ menuOpen: false }"
-    @keydown.escape.window="menuOpen = false">
-
-    <!-- Top Loading Progress Bar (Non-bloquant, ultra-fluide) -->
-    <div id="top-loading-bar" class="fixed top-0 left-0 h-[2.5px] bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 z-[99999] opacity-0 transition-all duration-300 pointer-events-none w-0"></div>
+    x-data="{ 
+        menuOpen: sessionStorage.getItem('menuOpenAfterNav') === 'true' 
+    }"
+    x-init="
+        if (sessionStorage.getItem('menuOpenAfterNav') === 'true') {
+            sessionStorage.removeItem('menuOpenAfterNav');
+            requestAnimationFrame(() => {
+                document.documentElement.classList.remove('nav-opening-drawer');
+                setTimeout(() => {
+                    menuOpen = false;
+                }, 400);
+            });
+        }
+    "
+    @keydown.escape.window="menuOpen = false; sessionStorage.removeItem('menuOpenAfterNav')">
 
     <!-- Outer Viewport (Background #3B5BDB for Drawer Menu) -->
     <div class="h-screen w-screen overflow-hidden bg-[#3B5BDB] relative flex select-none">
@@ -235,7 +268,7 @@
             <!-- Overlay when menu is open: clicking anywhere on the shifted app returns it to full screen (pure transparent, stays completely clear and bright) -->
             <div 
                 x-show="menuOpen" 
-                @click="menuOpen = false" 
+                @click="menuOpen = false; sessionStorage.removeItem('menuOpenAfterNav')" 
                 class="absolute inset-0 z-50 bg-transparent cursor-pointer rounded-[inherit]"
                 title="Cliquer pour afficher l'application en plein écran"
                 style="display: none;"
@@ -465,6 +498,7 @@
                     initialCountry: "ci",
                     preferredCountries: ["ci", "fr", "sn", "bf"],
                     separateDialCode: true,
+                    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/utils.js",
                 });
 
                 const syncPadding = () => {
@@ -487,24 +521,34 @@
                 });
             });
 
-            // Prevent double form submission (only if native validation passes)
+            // Auto-teleport all modals/popups to document.body so they never get clipped by scrolling or transformed containers
+            const teleportAllModals = () => {
+                document.querySelectorAll('[id*="modal"], [id*="Modal"]').forEach(modal => {
+                    if (modal.closest('aside') || modal.id === 'page-progress-bar' || modal.id === 'app-surface') return;
+                    if (modal.classList.contains('fixed') && modal.parentElement !== document.body) {
+                        document.body.appendChild(modal);
+                    }
+                });
+            };
+            teleportAllModals();
+            setTimeout(teleportAllModals, 100);
+            setTimeout(teleportAllModals, 400);
+
+            // Prevent double form submission
             document.querySelectorAll('form').forEach(form => {
                 form.addEventListener('submit', function (e) {
-                    if (typeof this.checkValidity === 'function' && !this.checkValidity()) {
-                        return; // Let native browser validation display errors, do not disable buttons
-                    }
-
                     if (this.dataset.submitted) {
                         e.preventDefault();
                         return;
                     }
                     this.dataset.submitted = 'true';
 
-                    // Disable all submit buttons in this form
+                    // Disable all buttons in this form
                     const buttons = this.querySelectorAll('button[type="submit"], input[type="submit"]');
                     const originalStates = [];
 
                     buttons.forEach((btn, index) => {
+                        // Store original state
                         originalStates[index] = {
                             disabled: btn.disabled,
                             innerHTML: btn.innerHTML,
@@ -514,14 +558,15 @@
                         btn.disabled = true;
                         btn.classList.add('opacity-50', 'cursor-not-allowed');
 
+                        // Show loading text if available, else keep original
                         if (btn.dataset.loadingText) {
                             btn.textContent = btn.dataset.loadingText;
                         } else {
-                            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Patientez...';
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Chargement...';
                         }
                     });
 
-                    // Reset after 6 seconds (fallback if network error or server slow)
+                    // Reset after 5 seconds (fallback for AJAX or if navigation fails)
                     setTimeout(() => {
                         this.dataset.submitted = '';
                         buttons.forEach((btn, index) => {
@@ -531,43 +576,29 @@
                                 btn.className = originalStates[index].classes;
                             }
                         });
-                    }, 6000);
+                    }, 5000);
                 });
             });
 
             // ============================================================
-            // TOP LOADING PROGRESS BAR (Non-bloquant, fluide et propre)
+            // SMOOTH PAGE EXIT TRANSITION
             // ============================================================
-            const topBar = document.getElementById('top-loading-bar');
+            const pageContent = document.getElementById('page-content');
 
-            function startLoadingBar() {
-                if (topBar) {
-                    topBar.style.width = '25%';
-                    topBar.style.opacity = '1';
-                    setTimeout(() => {
-                        if (topBar.style.opacity === '1') {
-                            topBar.style.width = '75%';
-                        }
-                    }, 150);
+            function triggerPageExit() {
+                if (pageContent) {
+                    pageContent.classList.add('page-exiting');
                 }
             }
 
-            function finishLoadingBar() {
-                if (topBar) {
-                    topBar.style.width = '100%';
-                    setTimeout(() => {
-                        topBar.style.opacity = '0';
-                        setTimeout(() => {
-                            topBar.style.width = '0%';
-                        }, 250);
-                    }, 100);
+            // Handle back/forward navigation (bfcache)
+            window.addEventListener('pageshow', function (e) {
+                if (pageContent) {
+                    pageContent.classList.remove('page-exiting');
                 }
-            }
+            });
 
-            // Reset loading bar on page show (handles browser back/forward cache)
-            window.addEventListener('pageshow', finishLoadingBar);
-
-            // Intercept internal links for sleek progress feedback without freezing the screen
+            // Intercept internal links for smooth page exit
             document.querySelectorAll('a[href]').forEach(link => {
                 link.addEventListener('click', function (e) {
                     const href = this.getAttribute('href');
@@ -601,8 +632,8 @@
                         return;
                     }
 
-                    // Animate the sleek top bar (non-blocking)
-                    startLoadingBar();
+                    // Trigger smooth exit transition
+                    triggerPageExit();
                 });
             });
 
