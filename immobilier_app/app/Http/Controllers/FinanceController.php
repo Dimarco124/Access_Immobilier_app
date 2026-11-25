@@ -87,14 +87,9 @@ class FinanceController extends Controller
                     ->whereHas('facture.contrat.bien', function ($q) use ($proprietaire) {
                         $q->where('proprietaire_id', $proprietaire->id);
                     })
-                    ->whereHas('facture', function ($q) use ($moisFormat, $dateFiltre) {
-                        $q->where(function ($sub) use ($moisFormat, $dateFiltre) {
-                            $sub->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
-                                ->orWhere(function ($s2) use ($dateFiltre) {
-                                    $s2->whereMonth('created_at', $dateFiltre->month)
-                                       ->whereYear('created_at', $dateFiltre->year);
-                                });
-                        })->where('type_facture', 'Loyer');
+                    ->whereHas('facture', function ($q) use ($moisFormat) {
+                        $q->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
+                          ->where('type_facture', 'Loyer');
                     })
                     ->join('factures', 'paiements.facture_id', '=', 'factures.id')
                     ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
@@ -112,14 +107,9 @@ class FinanceController extends Controller
                     ->whereHas('facture.contrat.bien', function ($q) use ($proprietaire) {
                         $q->where('proprietaire_id', $proprietaire->id);
                     })
-                    ->whereHas('facture', function ($q) use ($moisFormat, $dateFiltre) {
-                        $q->where(function ($sub) use ($moisFormat, $dateFiltre) {
-                            $sub->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
-                                ->orWhere(function ($s2) use ($dateFiltre) {
-                                    $s2->whereMonth('created_at', $dateFiltre->month)
-                                       ->whereYear('created_at', $dateFiltre->year);
-                                });
-                        })->where('type_facture', 'Initial');
+                    ->whereHas('facture', function ($q) use ($moisFormat) {
+                        $q->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
+                          ->where('type_facture', 'Initial');
                     })
                     ->join('factures', 'paiements.facture_id', '=', 'factures.id')
                     ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
@@ -184,13 +174,7 @@ class FinanceController extends Controller
         // Commissions sur loyers classiques (factures type Loyer)
         $commissionsLoyerClassique = Paiement::where('paiements.agence_id', $agence->id)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where(function ($q) use ($moisFormat, $dateFiltre) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($dateFiltre) {
-                      $sub->whereMonth('factures.created_at', $dateFiltre->month)
-                          ->whereYear('factures.created_at', $dateFiltre->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
             ->where('factures.type_facture', 'Loyer')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
@@ -201,13 +185,7 @@ class FinanceController extends Controller
         $commissionsLoyerInitial = 0;
         $facturesInitialesCommissions = Paiement::where('paiements.agence_id', $agence->id)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where(function ($q) use ($moisFormat, $dateFiltre) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($dateFiltre) {
-                      $sub->whereMonth('factures.created_at', $dateFiltre->month)
-                          ->whereYear('factures.created_at', $dateFiltre->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
             ->where('factures.type_facture', 'Initial')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
@@ -235,26 +213,14 @@ class FinanceController extends Controller
         // 1. Frais Dossier factures séparées
         $fraisDossier += Paiement::where('paiements.agence_id', $agence->id)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where(function ($q) use ($moisFormat, $dateFiltre) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($dateFiltre) {
-                      $sub->whereMonth('factures.created_at', $dateFiltre->month)
-                          ->whereYear('factures.created_at', $dateFiltre->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
             ->where('factures.type_facture', 'Frais Dossier')
             ->sum('paiements.montant_verse');
 
         // 2. Frais Dossier depuis les factures Initiales (basé sur le champ frais_dossier de la facture)
         $facturesInitiales = Paiement::where('paiements.agence_id', $agence->id)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where(function ($q) use ($moisFormat, $dateFiltre) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($dateFiltre) {
-                      $sub->whereMonth('factures.created_at', $dateFiltre->month)
-                          ->whereYear('factures.created_at', $dateFiltre->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
             ->where('factures.type_facture', 'Initial')
             ->select('factures.id', 'factures.frais_dossier', 'factures.montant_caution', 'factures.montant_loyer_initial', 'factures.montant_total_du', 'factures.mois_facture', 'paiements.montant_verse')
             ->get();
@@ -288,13 +254,7 @@ class FinanceController extends Controller
 
         // 4. STATISTIQUES AVANCÉES DE RECOUVREMENT DES LOYERS DU MOIS
         $facturesMois = Facture::where('agence_id', $agence->id)
-            ->where(function ($q) use ($moisFormat, $dateFiltre) {
-                $q->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($dateFiltre) {
-                      $sub->whereMonth('created_at', $dateFiltre->month)
-                          ->whereYear('created_at', $dateFiltre->year);
-                  });
-            })
+            ->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
             ->get();
 
         $loyersEmis = 0;
@@ -792,13 +752,8 @@ class FinanceController extends Controller
 
             // 1. Factures du mois (Loyer + Initial)
             $facturesMois = Facture::where('agence_id', $agenceId)
-                ->where(function ($q) use ($moisFormat, $targetDate) {
-                    $q->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
-                      ->orWhere(function ($sub) use ($targetDate) {
-                          $sub->whereMonth('created_at', $targetDate->month)
-                              ->whereYear('created_at', $targetDate->year);
-                      });
-                })->get();
+                ->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
+                ->get();
 
             $emis = 0;
             $encaisses = 0;
@@ -826,13 +781,7 @@ class FinanceController extends Controller
                 ->join('factures', 'paiements.facture_id', '=', 'factures.id')
                 ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
                 ->join('biens', 'contrats.bien_id', '=', 'biens.id')
-                ->where(function ($q) use ($moisFormat, $targetDate) {
-                    $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                      ->orWhere(function ($sub) use ($targetDate) {
-                          $sub->whereMonth('factures.created_at', $targetDate->month)
-                              ->whereYear('factures.created_at', $targetDate->year);
-                      });
-                })
+                ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
                 ->where('factures.type_facture', 'Loyer')
                 ->selectRaw('SUM(paiements.montant_verse * (biens.taux_commission_agence / 100)) as comm')
                 ->value('comm') ?? 0;
@@ -842,13 +791,7 @@ class FinanceController extends Controller
                 ->join('factures', 'paiements.facture_id', '=', 'factures.id')
                 ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
                 ->join('biens', 'contrats.bien_id', '=', 'biens.id')
-                ->where(function ($q) use ($moisFormat, $targetDate) {
-                    $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                      ->orWhere(function ($sub) use ($targetDate) {
-                          $sub->whereMonth('factures.created_at', $targetDate->month)
-                              ->whereYear('factures.created_at', $targetDate->year);
-                      });
-                })
+                ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
                 ->where('factures.type_facture', 'Initial')
                 ->select('factures.montant_total_du', 'factures.montant_loyer_initial', 'factures.frais_dossier', 'paiements.montant_verse', 'biens.taux_commission_agence')
                 ->get();
@@ -872,13 +815,7 @@ class FinanceController extends Controller
             // 5. Frais de dossier facturés séparément
             $fraisDossierSepares = (float) Paiement::where('paiements.agence_id', $agenceId)
                 ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-                ->where(function ($q) use ($moisFormat, $targetDate) {
-                    $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                      ->orWhere(function ($sub) use ($targetDate) {
-                          $sub->whereMonth('factures.created_at', $targetDate->month)
-                              ->whereYear('factures.created_at', $targetDate->year);
-                      });
-                })
+                ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
                 ->where('factures.type_facture', 'Frais Dossier')
                 ->sum('paiements.montant_verse');
 
