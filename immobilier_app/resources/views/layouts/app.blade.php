@@ -78,11 +78,9 @@
             scrollbar-width: none !important;
         }
 
-        .app-surface-transition {
-            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-                        border-radius 0.5s cubic-bezier(0.22, 1, 0.36, 1) !important;
-            transform-origin: left center;
-            box-shadow: none !important;
+        /* Sidebar fixe — aucune animation */
+        .sidebar-fixed {
+            flex-shrink: 0;
         }
 
         /* Global Input Styling - Compact */
@@ -166,22 +164,8 @@
             }
         }
 
-        html.nav-opening-drawer #app-surface {
-            transform: translateX(300px) scale(0.86) !important;
-            border-radius: 36px !important;
-        }
-        @media (max-width: 639px) {
-            html.nav-opening-drawer #app-surface {
-                transform: translateX(260px) scale(0.88) !important;
-                border-radius: 28px !important;
-            }
-        }
-        @media (min-width: 640px) and (max-width: 767px) {
-            html.nav-opening-drawer #app-surface {
-                transform: translateX(280px) scale(0.86) !important;
-                border-radius: 36px !important;
-            }
-        }
+        /* Supprimer le nav-opening-drawer (ancien système drawer) */
+        html.nav-opening-drawer #app-surface { transform: none !important; border-radius: 0 !important; }
 
         .fade-enter {
             opacity: 0;
@@ -230,59 +214,29 @@
         }
     </style>
 
-    <script>
-        if (sessionStorage.getItem('menuOpenAfterNav') === 'true') {
-            document.documentElement.classList.add('nav-opening-drawer');
-        }
-    </script>
+    {{-- Supprimer le nav-opening-drawer (ancien système drawer) --}}
 </head>
 
-<body class="font-sans antialiased overflow-hidden" 
-    x-data="{ 
-        menuOpen: sessionStorage.getItem('menuOpenAfterNav') === 'true' 
-    }"
-    x-init="
-        if (sessionStorage.getItem('menuOpenAfterNav') === 'true') {
-            sessionStorage.removeItem('menuOpenAfterNav');
-            requestAnimationFrame(() => {
-                document.documentElement.classList.remove('nav-opening-drawer');
-                setTimeout(() => {
-                    menuOpen = false;
-                }, 400);
-            });
-        }
-    "
-    @keydown.escape.window="menuOpen = false; sessionStorage.removeItem('menuOpenAfterNav')">
+<body class="font-sans antialiased overflow-hidden"
+    x-data="{ sidebarOpen: localStorage.getItem('sidebarOpen') !== 'false' }"
+>
+    {{-- Layout principal : sidebar fixe à gauche + contenu à droite --}}
+    <div class="h-screen w-screen flex overflow-hidden bg-[#f8fafc]">
 
-    <!-- Outer Viewport (Background #3B5BDB for Drawer Menu) -->
-    <div class="h-screen w-screen overflow-hidden bg-[#3B5BDB] relative flex select-none">
-        <!-- Drawer Menu (Revealed behind app) -->
+        {{-- Sidebar --}}
         @include('layouts.navigation')
 
-        <!-- Main Application Surface (Slides right, scales down, curves corners - clean, bright, no shadow) -->
-        <div 
-            id="app-surface"
-            class="app-surface-transition absolute inset-0 z-20 bg-[#f8fafc] flex flex-col min-w-0 h-full overflow-hidden shadow-none"
-            :class="menuOpen ? 'translate-x-[260px] sm:translate-x-[280px] md:translate-x-[300px] scale-[0.88] sm:scale-[0.86] rounded-[28px] sm:rounded-[36px]' : 'translate-x-0 scale-100 rounded-none'"
-        >
-            <!-- Overlay when menu is open: clicking anywhere on the shifted app returns it to full screen (pure transparent, stays completely clear and bright) -->
-            <div 
-                x-show="menuOpen" 
-                @click="menuOpen = false; sessionStorage.removeItem('menuOpenAfterNav')" 
-                class="absolute inset-0 z-50 bg-transparent cursor-pointer rounded-[inherit]"
-                title="Cliquer pour afficher l'application en plein écran"
-                style="display: none;"
-            ></div>
+        {{-- Zone principale (prend tout l'espace restant) --}}
+        <div id="app-surface" class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#f8fafc]">
 
             <!-- Top Navigation / Header -->
             <nav
                 class="bg-white border-b border-slate-100 shrink-0 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-40">
                 <div class="flex items-center gap-3">
-                    <button @click="menuOpen = !menuOpen"
-                        class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all duration-200 group active:scale-95"
-                        :title="menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'">
-                        <i class="fas text-lg transition-transform group-hover:scale-110"
-                            :class="menuOpen ? 'fa-times text-blue-600' : 'fa-bars-staggered text-slate-700'"></i>
+                    <button @click="sidebarOpen = !sidebarOpen; localStorage.setItem('sidebarOpen', sidebarOpen)"
+                        class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 transition-colors group"
+                        :title="sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'">
+                        <i class="fas fa-bars-staggered text-lg text-slate-700 group-hover:text-blue-600"></i>
                     </button>
 
                     <div class="flex items-center gap-2.5">
@@ -462,7 +416,7 @@
                     </div>
                 </main>
 
-                <!-- Footer -->
+                {{-- Footer --}}
             </div>
         </div>
     </div>
