@@ -78,8 +78,8 @@
                             
                             <!-- Logo & Informations Cabinet / Agence -->
                             <div class="flex items-start gap-3.5 max-w-md">
-                                @if($contrat->agence->logo)
-                                    <img src="{{ asset('storage/' . $contrat->agence->logo) }}" alt="Logo {{ $contrat->agence->nom }}" class="h-14 sm:h-16 max-w-[130px] w-auto object-contain shrink-0">
+                                @if($contrat->agence && $contrat->agence->logo_url)
+                                    <img src="{{ $contrat->agence->logo_url }}" alt="Logo {{ $contrat->agence->nom }}" class="h-14 sm:h-16 max-w-[130px] w-auto object-contain shrink-0">
                                 @else
                                     <div class="w-14 h-14 bg-slate-900 rounded-lg flex items-center justify-center text-white font-black text-xl shrink-0">
                                         {{ strtoupper(substr($contrat->agence->nom, 0, 2)) }}

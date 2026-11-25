@@ -12,8 +12,8 @@
                     <div class="flex justify-between items-start border-b-4 border-red-600 pb-10 mb-10">
                         <div class="flex gap-6 items-center">
                             <div class="flex flex-col items-center gap-1.5">
-                                @if($contrat->agence->logo)
-                                <img src="{{ asset('storage/' . $contrat->agence->logo) }}" alt="Logo {{ $contrat->agence->nom }}" class="h-24 w-auto object-contain">
+                                @if($contrat->agence && $contrat->agence->logo_url)
+                                <img src="{{ $contrat->agence->logo_url }}" alt="Logo {{ $contrat->agence->nom }}" class="h-24 w-auto object-contain">
                                 @else
                                 <div class="w-24 h-24 bg-gradient-to-br from-red-600 to-red-800 rounded-2xl flex items-center justify-center text-white font-black text-4xl shadow-lg shadow-red-200">
                                     {{ strtoupper(substr($contrat->agence->nom, 0, 2)) }}

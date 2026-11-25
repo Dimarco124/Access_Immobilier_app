@@ -20,11 +20,11 @@
                     <div class="flex justify-between items-start border-b-2 border-slate-100 pb-10 mb-10">
                         <div class="flex gap-6 items-center">
                             <div class="flex flex-col items-center gap-1.5">
-                                @if(Auth::user()->agence->logo)
-                                    <img src="{{ asset('storage/' . Auth::user()->agence->logo) }}" alt="Logo {{ Auth::user()->agence->nom_agence }}" class="h-20 w-auto object-contain">
+                                @if(Auth::user()->agence && Auth::user()->agence->logo_url)
+                                    <img src="{{ Auth::user()->agence->logo_url }}" alt="Logo {{ Auth::user()->agence->nom }}" class="h-20 w-auto object-contain">
                                 @else
                                     <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl flex items-center justify-center text-white font-black text-3xl shadow-lg shadow-blue-200">
-                                        {{ strtoupper(substr(Auth::user()->agence->nom_agence, 0, 2)) }}
+                                        {{ strtoupper(substr(Auth::user()->agence->nom ?? 'AG', 0, 2)) }}
                                     </div>
                                 @endif
                                 <span class="text-sm font-black text-slate-900 mt-2 text-center w-full block">{{ Auth::user()->agence->nom_agence }}</span>
