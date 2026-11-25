@@ -59,18 +59,18 @@
     }
 @endphp
 
-{{-- Sidebar fixe avec transition fluide et couleur Bleu Ciel (#0284c7) --}}
+{{-- Sidebar fixe avec couleur bleu ciel doux (carte 500 000 / indigo-50 #EEF2FF) --}}
 <aside
     id="main-sidebar"
-    class="sidebar-container h-full z-30 shrink-0 overflow-hidden text-white bg-[#0284c7]"
+    class="sidebar-container h-full z-30 shrink-0 overflow-hidden bg-[#eef2ff] border-r border-indigo-100 shadow-xs"
 >
     {{-- Conteneur interne à largeur fixe (260px) pour éviter tout chevauchement de texte pendant la transition --}}
     <div class="w-[260px] h-full flex flex-col justify-between py-4 px-3 overflow-hidden">
         {{-- Brand Header --}}
-        <div class="shrink-0 pb-3 mb-1 border-b border-white/20">
+        <div class="shrink-0 pb-3 mb-1 border-b border-indigo-200/60">
             <div class="flex items-center justify-between">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 group min-w-0">
-                    <div class="w-9 h-9 rounded-xl bg-white text-[#0284c7] flex items-center justify-center font-black text-base shadow-sm shrink-0 group-hover:scale-105 transition-transform overflow-hidden p-1">
+                    <div class="w-9 h-9 rounded-xl bg-white text-indigo-600 flex items-center justify-center font-black text-base shadow-sm border border-indigo-100 shrink-0 group-hover:scale-105 transition-transform overflow-hidden p-1">
                         @if(Auth::user()->agence && Auth::user()->agence->logo_url)
                             <img src="{{ Auth::user()->agence->logo_url }}" alt="Logo" class="h-full w-full object-contain">
                         @else
@@ -78,16 +78,16 @@
                         @endif
                     </div>
                     <div class="min-w-0">
-                        <span class="block font-black text-sm uppercase tracking-tight text-white truncate">{{ Auth::user()->agence->nom ?? 'Habitat Immo' }}</span>
-                        <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-white/85 mt-0.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-300"></span>
+                        <span class="block font-black text-sm uppercase tracking-tight text-slate-900 truncate">{{ Auth::user()->agence->nom ?? 'Habitat Immo' }}</span>
+                        <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-indigo-600 mt-0.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                             {{ Auth::user()->roles->first()->name ?? 'Utilisateur' }}
                         </span>
                     </div>
                 </a>
                 {{-- Bouton fermer la sidebar --}}
                 <button @click="toggleSidebar()"
-                    class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-colors shrink-0"
+                    class="w-7 h-7 rounded-lg bg-white/70 hover:bg-white text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors shrink-0 shadow-xs"
                     title="Fermer le menu">
                     <i class="fas fa-times text-xs"></i>
                 </button>
@@ -105,34 +105,34 @@
                     }
                 @endphp
                 <a href="{{ route($item['route']) }}"
-                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl group transition-all duration-150 {{ $isActive ? 'bg-white text-[#0284c7] font-extrabold shadow-sm' : 'text-white/90 hover:text-white hover:bg-white/15 font-bold' }}">
-                    <div class="shrink-0 w-6 h-6 rounded-md flex items-center justify-center {{ $isActive ? 'text-[#0284c7]' : 'text-white/85 group-hover:text-white' }}">
+                    class="flex items-center gap-2.5 px-3 py-2 rounded-xl group transition-all duration-150 {{ $isActive ? 'bg-white text-indigo-600 font-extrabold shadow-sm border border-indigo-100' : 'text-slate-600 hover:text-indigo-600 hover:bg-white/80 font-bold' }}">
+                    <div class="shrink-0 w-6 h-6 rounded-md flex items-center justify-center {{ $isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-600' }}">
                         <i class="{{ $item['icon'] }} text-xs"></i>
                     </div>
                     <span class="text-xs uppercase tracking-wider truncate">{{ $item['label'] }}</span>
                     @if($isActive)
-                        <i class="fas fa-chevron-right text-[9px] text-[#0284c7]/70 ml-auto"></i>
+                        <i class="fas fa-chevron-right text-[9px] text-indigo-400 ml-auto"></i>
                     @endif
                 </a>
             @endforeach
         </div>
 
         {{-- Footer --}}
-        <div class="pt-2.5 mt-1 border-t border-white/20 shrink-0 space-y-2">
+        <div class="pt-2.5 mt-1 border-t border-indigo-200/60 shrink-0 space-y-2">
             <div class="flex items-center gap-2">
-                <a href="{{ route('profile.edit') }}" class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white/90 hover:text-white hover:bg-white/15 transition-colors">
-                    <i class="fas fa-user-circle text-white/85 text-xs"></i>
+                <a href="{{ route('profile.edit') }}" class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-white/80 transition-colors">
+                    <i class="fas fa-user-circle text-slate-400 text-xs"></i>
                     <span>Mon Profil</span>
                 </a>
                 @if(Auth::user()->hasRole('admin'))
-                    <a href="{{ route('agence.parametres') }}" class="flex items-center justify-center w-7 h-7 rounded-lg text-white/90 hover:text-white hover:bg-white/15 transition-colors" title="Paramètres de l'agence">
-                        <i class="fas fa-cog text-white/85 text-xs"></i>
+                    <a href="{{ route('agence.parametres') }}" class="flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-white/80 transition-colors" title="Paramètres de l'agence">
+                        <i class="fas fa-cog text-slate-400 text-xs"></i>
                     </a>
                 @endif
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-white text-[#0284c7] hover:bg-white/95 font-black text-xs uppercase tracking-wider shadow-sm transition-colors">
+                <button type="submit" class="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-white text-indigo-600 hover:bg-red-50 hover:text-red-600 border border-indigo-100 font-black text-xs uppercase tracking-wider shadow-sm transition-colors">
                     <i class="fas fa-sign-out-alt text-xs"></i>
                     <span>Déconnexion</span>
                 </button>

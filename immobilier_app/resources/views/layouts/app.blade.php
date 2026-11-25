@@ -127,7 +127,7 @@
             width: 36px;
             height: 36px;
             border: 3.5px solid #e2e8f0;
-            border-top-color: #0284c7;
+            border-top-color: #6366f1;
             border-radius: 50%;
             animation: spin 0.75s linear infinite;
         }
@@ -312,9 +312,9 @@
                 class="bg-white border-b border-slate-100 shrink-0 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-40">
                 <div class="flex items-center gap-3">
                     <button @click="toggleSidebar()"
-                        class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-[#0284c7] hover:bg-sky-50 transition-colors group"
+                        class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors group"
                         :title="sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'">
-                        <i class="fas fa-bars-staggered text-lg text-slate-700 group-hover:text-[#0284c7]"></i>
+                        <i class="fas fa-bars-staggered text-lg text-slate-700 group-hover:text-indigo-600"></i>
                     </button>
 
                     <div class="flex items-center gap-2.5">
