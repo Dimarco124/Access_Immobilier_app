@@ -78,9 +78,53 @@
             scrollbar-width: none !important;
         }
 
-        /* Sidebar fixe — aucune animation */
+        /* =============================================
+           SIDEBAR — transition fluide width + opacity
+           ============================================= */
         .sidebar-fixed {
             flex-shrink: 0;
+            overflow: hidden;
+            /* Transition sur width ET opacity — donne un effet fondu + glissement */
+            transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.22s ease;
+            will-change: width, opacity;
+        }
+        .sidebar-fixed.sidebar-closed {
+            width: 0 !important;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* =============================================
+           LOADER DE NAVIGATION — spinner dans le contenu
+           ============================================= */
+        #nav-loader {
+            position: absolute;
+            inset: 0;
+            background: rgba(248, 250, 252, 0.75);
+            backdrop-filter: blur(1px);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+        #nav-loader.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .nav-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #3B5BDB;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* Global Input Styling - Compact */
@@ -227,7 +271,12 @@
         @include('layouts.navigation')
 
         {{-- Zone principale (prend tout l'espace restant) --}}
-        <div id="app-surface" class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#f8fafc]">
+        <div id="app-surface" class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#f8fafc] relative">
+
+            {{-- Spinner de navigation (affiché pendant le chargement d'une page) --}}
+            <div id="nav-loader">
+                <div class="nav-spinner"></div>
+            </div>
 
             <!-- Top Navigation / Header -->
             <nav
@@ -488,7 +537,7 @@
             setTimeout(teleportAllModals, 100);
             setTimeout(teleportAllModals, 400);
 
-            // Prevent double form submission
+            // Prevent double form submission + afficher le spinner
             document.querySelectorAll('form').forEach(form => {
                 form.addEventListener('submit', function (e) {
                     if (this.dataset.submitted) {
@@ -497,22 +546,21 @@
                     }
                     this.dataset.submitted = 'true';
 
+                    // Afficher le spinner de navigation
+                    showNavLoader();
+
                     // Disable all buttons in this form
                     const buttons = this.querySelectorAll('button[type="submit"], input[type="submit"]');
                     const originalStates = [];
 
                     buttons.forEach((btn, index) => {
-                        // Store original state
                         originalStates[index] = {
                             disabled: btn.disabled,
                             innerHTML: btn.innerHTML,
                             classes: btn.className
                         };
-
                         btn.disabled = true;
                         btn.classList.add('opacity-50', 'cursor-not-allowed');
-
-                        // Show loading text if available, else keep original
                         if (btn.dataset.loadingText) {
                             btn.textContent = btn.dataset.loadingText;
                         } else {
@@ -520,9 +568,10 @@
                         }
                     });
 
-                    // Reset after 5 seconds (fallback for AJAX or if navigation fails)
+                    // Reset after 5 seconds (fallback)
                     setTimeout(() => {
                         this.dataset.submitted = '';
+                        hideNavLoader();
                         buttons.forEach((btn, index) => {
                             if (originalStates[index]) {
                                 btn.disabled = originalStates[index].disabled;
@@ -535,59 +584,72 @@
             });
 
             // ============================================================
-            // SMOOTH PAGE EXIT TRANSITION
+            // SIDEBAR : toggle avec classe CSS (transition gérée en CSS)
             // ============================================================
-            const pageContent = document.getElementById('page-content');
+            const sidebar = document.querySelector('.sidebar-fixed');
 
-            function triggerPageExit() {
-                if (pageContent) {
-                    pageContent.classList.add('page-exiting');
+            function applySidebarState(open) {
+                if (sidebar) {
+                    if (open) {
+                        sidebar.classList.remove('sidebar-closed');
+                    } else {
+                        sidebar.classList.add('sidebar-closed');
+                    }
                 }
             }
 
-            // Handle back/forward navigation (bfcache)
-            window.addEventListener('pageshow', function (e) {
-                if (pageContent) {
-                    pageContent.classList.remove('page-exiting');
-                }
-            });
+            // Appliquer l'état initial immédiatement (sans transition)
+            const initialOpen = localStorage.getItem('sidebarOpen') !== 'false';
+            if (sidebar) {
+                // Désactiver la transition le temps de l'état initial
+                sidebar.style.transition = 'none';
+                applySidebarState(initialOpen);
+                // Réactiver la transition après le premier rendu
+                requestAnimationFrame(() => {
+                    sidebar.style.transition = '';
+                });
+            }
 
-            // Intercept internal links for smooth page exit
+            // Écouter les clics sur les boutons toggle (Alpine met à jour localStorage)
+            // On surveille localStorage pour synchroniser la classe CSS
+            const originalSetItem = localStorage.setItem.bind(localStorage);
+            localStorage.setItem = function(key, value) {
+                originalSetItem(key, value);
+                if (key === 'sidebarOpen') {
+                    applySidebarState(value !== 'false');
+                }
+            };
+
+            // ============================================================
+            // SPINNER DE NAVIGATION — affiché dans #app-surface
+            // ============================================================
+            const navLoader = document.getElementById('nav-loader');
+
+            function showNavLoader() {
+                if (navLoader) navLoader.classList.add('visible');
+            }
+            function hideNavLoader() {
+                if (navLoader) navLoader.classList.remove('visible');
+            }
+
+            // Masquer le loader quand la page est prête (bfcache aussi)
+            window.addEventListener('pageshow', hideNavLoader);
+
+            // Afficher le loader sur tout clic de lien interne
             document.querySelectorAll('a[href]').forEach(link => {
                 link.addEventListener('click', function (e) {
                     const href = this.getAttribute('href');
                     if (!href) return;
-
-                    // Skip anchors, javascript, mailto, tel
-                    if (href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) {
-                        return;
-                    }
-
-                    // Skip target="_blank" or download links
-                    if (this.target === '_blank' || this.hasAttribute('download')) {
-                        return;
-                    }
-
-                    // Skip if modifier key pressed
-                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
-                        return;
-                    }
-
-                    // Check same origin
+                    if (href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+                    if (this.target === '_blank' || this.hasAttribute('download')) return;
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
                     try {
                         const targetUrl = new URL(this.href, window.location.href);
-                        if (targetUrl.origin !== window.location.origin) {
-                            return;
-                        }
-                        if (targetUrl.href === window.location.href) {
-                            return;
-                        }
-                    } catch (err) {
-                        return;
-                    }
+                        if (targetUrl.origin !== window.location.origin) return;
+                        if (targetUrl.href === window.location.href) return;
+                    } catch (err) { return; }
 
-                    // Trigger smooth exit transition
-                    triggerPageExit();
+                    showNavLoader();
                 });
             });
 
