@@ -40,16 +40,16 @@ class DashboardService
     public function getFinancialFlows(int $agenceId, string $moisFormat, Carbon $dateFiltre): array
     {
         // Flux Loyers
-        $fluxLoyersMois = $this->calculateRentFlows($agenceId, $moisFormat);
-        $commissionLoyersMois = $this->calculateRentCommissions($agenceId, $moisFormat);
+        $fluxLoyersMois = $this->calculateRentFlows($agenceId, $moisFormat, $dateFiltre);
+        $commissionLoyersMois = $this->calculateRentCommissions($agenceId, $moisFormat, $dateFiltre);
 
         // Flux Cautions
-        $fluxCautionMois = $this->calculateDepositFlows($agenceId, $moisFormat);
+        $fluxCautionMois = $this->calculateDepositFlows($agenceId, $moisFormat, $dateFiltre);
         $totalCautionDetenue = $this->calculateTotalDepositsHeld($agenceId);
         $cautionsARendre = $this->getDepositsToReturn($agenceId);
 
         // Frais et Revenus Agence
-        $fluxFraisDossierMois = $this->calculateFileFeesFlows($agenceId, $moisFormat);
+        $fluxFraisDossierMois = $this->calculateFileFeesFlows($agenceId, $moisFormat, $dateFiltre);
         $caVisitesMois = $this->calculateVisitRevenues($agenceId, $dateFiltre);
         $caRetenuesCautionMois = $this->calculateDepositRetentions($agenceId, $dateFiltre);
 
@@ -74,26 +74,43 @@ class DashboardService
     }
 
     /**
+     * Filtre unifié : mois_facture correspond OU date_paiement dans le mois sélectionné.
+     * Cela permet de retrouver les paiements d'une facture initiale dont le mois_facture
+     * est le mois de début du contrat (ex: "December 2026") même si le paiement
+     * est effectué en novembre 2026.
+     */
+    private function applyMonthFilter($query, string $moisFormat, Carbon $dateFiltre): void
+    {
+        $query->where(function ($q) use ($moisFormat, $dateFiltre) {
+            $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
+              ->orWhere(function ($sub) use ($dateFiltre) {
+                  $sub->whereMonth('paiements.date_paiement', $dateFiltre->month)
+                      ->whereYear('paiements.date_paiement', $dateFiltre->year);
+              });
+        });
+    }
+
+    /**
      * Calcule les flux de loyers
      */
-    private function calculateRentFlows(int $agenceId, string $moisFormat): float
+    private function calculateRentFlows(int $agenceId, string $moisFormat, Carbon $dateFiltre): float
     {
         $fluxLoyers = 0;
 
         // Factures de type Loyer
-        $fluxLoyers += Paiement::where('paiements.agence_id', $agenceId)
+        $q = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where('factures.mois_facture', $moisFormat)
-            ->where('factures.type_facture', 'Loyer')
-            ->sum('paiements.montant_verse');
+            ->where('factures.type_facture', 'Loyer');
+        $this->applyMonthFilter($q, $moisFormat, $dateFiltre);
+        $fluxLoyers += $q->sum('paiements.montant_verse');
 
         // Factures Initiales (partie loyer)
-        $facturesInitiales = Paiement::where('paiements.agence_id', $agenceId)
+        $q2 = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where('factures.mois_facture', $moisFormat)
             ->where('factures.type_facture', 'Initial')
-            ->select('factures.montant_loyer_initial', 'factures.montant_total_du', 'paiements.montant_verse')
-            ->get();
+            ->select('factures.montant_loyer_initial', 'factures.montant_total_du', 'paiements.montant_verse');
+        $this->applyMonthFilter($q2, $moisFormat, $dateFiltre);
+        $facturesInitiales = $q2->get();
 
         foreach ($facturesInitiales as $paiement) {
             if ($paiement->montant_total_du > 0 && $paiement->montant_loyer_initial > 0) {
@@ -108,29 +125,29 @@ class DashboardService
     /**
      * Calcule les commissions sur loyers
      */
-    private function calculateRentCommissions(int $agenceId, string $moisFormat): float
+    private function calculateRentCommissions(int $agenceId, string $moisFormat, Carbon $dateFiltre): float
     {
         $commission = 0;
 
         // Commission sur loyers normaux
-        $commission += Paiement::where('paiements.agence_id', $agenceId)
+        $q = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
-            ->where('factures.mois_facture', $moisFormat)
             ->where('factures.type_facture', 'Loyer')
-            ->selectRaw('SUM(paiements.montant_verse * (biens.taux_commission_agence / 100)) as total_comm')
-            ->value('total_comm') ?? 0;
+            ->selectRaw('SUM(paiements.montant_verse * (biens.taux_commission_agence / 100)) as total_comm');
+        $this->applyMonthFilter($q, $moisFormat, $dateFiltre);
+        $commission += $q->value('total_comm') ?? 0;
 
         // Commission sur loyers initiaux
-        $facturesInitiales = Paiement::where('paiements.agence_id', $agenceId)
+        $q2 = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
-            ->where('factures.mois_facture', $moisFormat)
             ->where('factures.type_facture', 'Initial')
-            ->select('factures.montant_loyer_initial', 'factures.montant_total_du', 'paiements.montant_verse', 'biens.taux_commission_agence')
-            ->get();
+            ->select('factures.montant_loyer_initial', 'factures.montant_total_du', 'paiements.montant_verse', 'biens.taux_commission_agence');
+        $this->applyMonthFilter($q2, $moisFormat, $dateFiltre);
+        $facturesInitiales = $q2->get();
 
         foreach ($facturesInitiales as $paiement) {
             if ($paiement->montant_total_du > 0 && $paiement->montant_loyer_initial > 0) {
@@ -146,24 +163,24 @@ class DashboardService
     /**
      * Calcule les flux de cautions
      */
-    private function calculateDepositFlows(int $agenceId, string $moisFormat): float
+    private function calculateDepositFlows(int $agenceId, string $moisFormat, Carbon $dateFiltre): float
     {
         $fluxCaution = 0;
 
         // Cautions factures séparées
-        $fluxCaution += Paiement::where('paiements.agence_id', $agenceId)
+        $q = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where('factures.mois_facture', $moisFormat)
-            ->where('factures.type_facture', 'Caution')
-            ->sum('paiements.montant_verse');
+            ->where('factures.type_facture', 'Caution');
+        $this->applyMonthFilter($q, $moisFormat, $dateFiltre);
+        $fluxCaution += $q->sum('paiements.montant_verse');
 
         // Cautions depuis factures Initiales
-        $facturesInitiales = Paiement::where('paiements.agence_id', $agenceId)
+        $q2 = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where('factures.mois_facture', $moisFormat)
             ->where('factures.type_facture', 'Initial')
-            ->select('factures.montant_caution', 'factures.montant_total_du', 'paiements.montant_verse')
-            ->get();
+            ->select('factures.montant_caution', 'factures.montant_total_du', 'paiements.montant_verse');
+        $this->applyMonthFilter($q2, $moisFormat, $dateFiltre);
+        $facturesInitiales = $q2->get();
 
         foreach ($facturesInitiales as $paiement) {
             if ($paiement->montant_total_du > 0 && $paiement->montant_caution > 0) {
@@ -233,24 +250,24 @@ class DashboardService
     /**
      * Calcule les frais de dossier
      */
-    private function calculateFileFeesFlows(int $agenceId, string $moisFormat): float
+    private function calculateFileFeesFlows(int $agenceId, string $moisFormat, Carbon $dateFiltre): float
     {
         $fraisDossier = 0;
 
         // Frais Dossier factures séparées
-        $fraisDossier += Paiement::where('paiements.agence_id', $agenceId)
+        $q = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where('factures.mois_facture', $moisFormat)
-            ->where('factures.type_facture', 'Frais Dossier')
-            ->sum('paiements.montant_verse');
+            ->where('factures.type_facture', 'Frais Dossier');
+        $this->applyMonthFilter($q, $moisFormat, $dateFiltre);
+        $fraisDossier += $q->sum('paiements.montant_verse');
 
         // Frais Dossier depuis factures Initiales
-        $facturesInitiales = Paiement::where('paiements.agence_id', $agenceId)
+        $q2 = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where('factures.mois_facture', $moisFormat)
             ->where('factures.type_facture', 'Initial')
-            ->select('factures.frais_dossier', 'factures.montant_total_du', 'paiements.montant_verse')
-            ->get();
+            ->select('factures.frais_dossier', 'factures.montant_total_du', 'paiements.montant_verse');
+        $this->applyMonthFilter($q2, $moisFormat, $dateFiltre);
+        $facturesInitiales = $q2->get();
 
         foreach ($facturesInitiales as $paiement) {
             if ($paiement->montant_total_du > 0 && $paiement->frais_dossier > 0) {
@@ -299,35 +316,35 @@ class DashboardService
     /**
      * Calcule les reversements aux propriétaires pour un mois
      */
-    public function getOwnerReversals(int $agenceId, string $moisFormat): array
+    public function getOwnerReversals(int $agenceId, string $moisFormat, ?Carbon $dateFiltre = null): array
     {
+        $dateFiltre = $dateFiltre ?? Carbon::now();
         $reversementsArray = [];
 
         // Factures de type Loyer
-        $paiementsLoyer = Paiement::where('paiements.agence_id', $agenceId)
+        $q = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
             ->join('proprietaires', 'biens.proprietaire_id', '=', 'proprietaires.id')
             ->join('users', 'proprietaires.user_id', '=', 'users.id')
-            ->where('factures.mois_facture', $moisFormat)
             ->where('factures.type_facture', 'Loyer')
             ->selectRaw('users.name as proprietaire, SUM(paiements.montant_verse * (1 - (biens.taux_commission_agence / 100))) as a_reverser')
-            ->groupBy('users.name')
-            ->get();
+            ->groupBy('users.name');
+        $this->applyMonthFilter($q, $moisFormat, $dateFiltre);
+        $paiementsLoyer = $q->get();
 
         foreach ($paiementsLoyer as $p) {
             $reversementsArray[$p->proprietaire] = ($reversementsArray[$p->proprietaire] ?? 0) + $p->a_reverser;
         }
 
         // Factures Initiales (partie loyer)
-        $paiementsInitial = Paiement::where('paiements.agence_id', $agenceId)
+        $q2 = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
             ->join('proprietaires', 'biens.proprietaire_id', '=', 'proprietaires.id')
             ->join('users', 'proprietaires.user_id', '=', 'users.id')
-            ->where('factures.mois_facture', $moisFormat)
             ->where('factures.type_facture', 'Initial')
             ->select(
                 'users.name as proprietaire',
@@ -335,8 +352,9 @@ class DashboardService
                 'factures.montant_total_du',
                 'paiements.montant_verse',
                 'biens.taux_commission_agence'
-            )
-            ->get();
+            );
+        $this->applyMonthFilter($q2, $moisFormat, $dateFiltre);
+        $paiementsInitial = $q2->get();
 
         foreach ($paiementsInitial as $p) {
             if (!isset($reversementsArray[$p->proprietaire])) {
@@ -368,14 +386,21 @@ class DashboardService
     /**
      * Calcule le taux de recouvrement pour un mois
      */
-    public function getCollectionRate(int $agenceId, string $moisFormat): float
+    public function getCollectionRate(int $agenceId, string $moisFormat, ?Carbon $dateFiltre = null): float
     {
+        $dateFiltre = $dateFiltre ?? Carbon::now();
         $totalFacture = 0;
         $totalPaye = 0;
 
         // Factures de type Loyer
         $facturesLoyer = Facture::where('agence_id', $agenceId)
-            ->where('mois_facture', $moisFormat)
+            ->where(function ($q) use ($moisFormat, $dateFiltre) {
+                $q->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
+                  ->orWhere(function ($sub) use ($dateFiltre) {
+                      $sub->whereMonth('date_echeance', $dateFiltre->month)
+                          ->whereYear('date_echeance', $dateFiltre->year);
+                  });
+            })
             ->where('type_facture', 'Loyer')
             ->select('montant_total_du', 'montant_deja_paye')
             ->get();
@@ -387,7 +412,13 @@ class DashboardService
 
         // Partie loyer des factures Initiales
         $facturesInitiales = Facture::where('agence_id', $agenceId)
-            ->where('mois_facture', $moisFormat)
+            ->where(function ($q) use ($moisFormat, $dateFiltre) {
+                $q->whereRaw('LOWER(mois_facture) = ?', [mb_strtolower($moisFormat)])
+                  ->orWhere(function ($sub) use ($dateFiltre) {
+                      $sub->whereMonth('date_echeance', $dateFiltre->month)
+                          ->whereYear('date_echeance', $dateFiltre->year);
+                  });
+            })
             ->where('type_facture', 'Initial')
             ->select('montant_total_du', 'montant_deja_paye', 'montant_loyer_initial')
             ->get();

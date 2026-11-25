@@ -83,10 +83,10 @@ class DashboardController extends Controller
         $financialFlows = $this->dashboardService->getFinancialFlows($agenceId, $moisFormat, $dateFiltre);
 
         // 3. Reversements propriétaires
-        $reversements = $this->dashboardService->getOwnerReversals($agenceId, $moisFormat);
+        $reversements = $this->dashboardService->getOwnerReversals($agenceId, $moisFormat, $dateFiltre);
 
         // 4. Taux de recouvrement
-        $tauxRecouvrement = $this->dashboardService->getCollectionRate($agenceId, $moisFormat);
+        $tauxRecouvrement = $this->dashboardService->getCollectionRate($agenceId, $moisFormat, $dateFiltre);
 
         // 5. Taux d'occupation
         $occupation = $this->dashboardService->getOccupancyRate($agenceId);
@@ -99,7 +99,7 @@ class DashboardController extends Controller
 
         // 8. Graphiques et statistiques
         $chartData = $this->statisticsService->getRevenueExpenseChart($agenceId);
-        $caParType = $this->statisticsService->getRevenueByPropertyType($agenceId, $moisFormat);
+        $caParType = $this->statisticsService->getRevenueByPropertyType($agenceId, $moisFormat, $dateFiltre);
         $repartition_parc = $this->statisticsService->getPropertyDistribution(
             $agenceId,
             $occupation['total_biens'],
@@ -108,7 +108,7 @@ class DashboardController extends Controller
         $performance_paiement = $this->statisticsService->getPaymentPerformance($agenceId);
         $sparklines = $this->statisticsService->getSparklines($agenceId, $dateFiltre, $moisFormat);
         $listeNoire = $this->statisticsService->getBlacklist($agenceId);
-        $derniers_paiements = $this->statisticsService->getRecentPayments($agenceId, $moisFormat);
+        $derniers_paiements = $this->statisticsService->getRecentPayments($agenceId, $moisFormat, $dateFiltre);
 
         // Compilation des stats
         $stats = array_merge($baseStats, [
