@@ -38,32 +38,28 @@ class StatisticsService
         }
 
         return [
-            'mois_labels' => $mois_labels,
-            'revenus_mensuels' => $revenus_mensuels,
-            'commissions_mensuelles' => $commissions_mensuelles,
-            'depenses_mensuels' => $depenses_mensuels,
+            'mois_labels'             => $mois_labels,
+            'revenus_mensuels'        => $revenus_mensuels,
+            'commissions_mensuelles'  => $commissions_mensuelles,
+            'depenses_mensuels'       => $depenses_mensuels,
         ];
     }
 
     /**
-     * Calcule les revenus d'un mois
+     * Calcule les revenus d'un mois.
+     * OPTION B : filtre strictement par mois_facture (insensible à la casse).
      */
     private function calculateMonthlyRevenue(int $agenceId, string $moisFormat, Carbon $date): array
     {
+        $moisLower = mb_strtolower($moisFormat);
         $fluxLoyers = 0;
         $commLoyers = 0;
         $fraisDossier = 0;
 
-        // Factures de type Loyer — filtre double : mois_facture OU date_paiement dans le mois
+        // Factures de type Loyer
         $fluxLoyers += Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where(function ($q) use ($moisFormat, $date) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($date) {
-                      $sub->whereMonth('paiements.date_paiement', $date->month)
-                          ->whereYear('paiements.date_paiement', $date->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [$moisLower])
             ->where('factures.type_facture', 'Loyer')
             ->sum('paiements.montant_verse');
 
@@ -71,29 +67,17 @@ class StatisticsService
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
-            ->where(function ($q) use ($moisFormat, $date) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($date) {
-                      $sub->whereMonth('paiements.date_paiement', $date->month)
-                          ->whereYear('paiements.date_paiement', $date->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [$moisLower])
             ->where('factures.type_facture', 'Loyer')
             ->selectRaw('SUM(paiements.montant_verse * (biens.taux_commission_agence / 100)) as total_comm')
             ->value('total_comm') ?? 0;
 
-        // Factures Initiales — filtre double
+        // Factures Initiales
         $facturesInitiales = Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
-            ->where(function ($q) use ($moisFormat, $date) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($date) {
-                      $sub->whereMonth('paiements.date_paiement', $date->month)
-                          ->whereYear('paiements.date_paiement', $date->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [$moisLower])
             ->where('factures.type_facture', 'Initial')
             ->select(
                 'paiements.montant_verse',
@@ -121,35 +105,29 @@ class StatisticsService
             }
         }
 
-        // Frais de visites
+        // Frais de visites (par date réelle de visite)
         $visites = Visite::where('agence_id', $agenceId)
             ->whereMonth('created_at', $date->month)
             ->whereYear('created_at', $date->year)
             ->sum('montant_paye');
 
         return [
-            'revenus' => $fluxLoyers + $fraisDossier + $visites,
+            'revenus'     => $fluxLoyers + $fraisDossier + $visites,
             'commissions' => $commLoyers + $fraisDossier + $visites,
         ];
     }
 
     /**
-     * Répartition du CA par type de bien
+     * Répartition du CA par type de bien.
+     * OPTION B : filtre strictement par mois_facture.
      */
     public function getRevenueByPropertyType(int $agenceId, string $moisFormat, ?Carbon $dateFiltre = null): array
     {
-        $dateFiltre = $dateFiltre ?? Carbon::now();
         return Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
             ->join('contrats', 'factures.contrat_id', '=', 'contrats.id')
             ->join('biens', 'contrats.bien_id', '=', 'biens.id')
-            ->where(function ($q) use ($moisFormat, $dateFiltre) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($dateFiltre) {
-                      $sub->whereMonth('paiements.date_paiement', $dateFiltre->month)
-                          ->whereYear('paiements.date_paiement', $dateFiltre->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
             ->whereIn('factures.type_facture', ['Loyer', 'Frais Dossier', 'Caution', 'Initial'])
             ->selectRaw('biens.type_bien, SUM(paiements.montant_verse) as total')
             ->groupBy('biens.type_bien')
@@ -164,7 +142,7 @@ class StatisticsService
     public function getPropertyDistribution(int $agenceId, int $totalBiens, int $biensLoues): array
     {
         return [
-            'loues' => $biensLoues,
+            'loues'       => $biensLoues,
             'disponibles' => $totalBiens - $biensLoues,
         ];
     }
@@ -175,45 +153,44 @@ class StatisticsService
     public function getPaymentPerformance(int $agenceId): array
     {
         return [
-            'payees' => Facture::where('agence_id', $agenceId)->where('statut', 'Payée')->count(),
-            'partielles' => Facture::where('agence_id', $agenceId)->where('statut', 'Partielle')->count(),
-            'impayees' => Facture::where('agence_id', $agenceId)->where('statut', 'Impayée')->count(),
+            'payees'    => \App\Models\Facture::where('agence_id', $agenceId)->where('statut', 'Payée')->count(),
+            'partielles'=> \App\Models\Facture::where('agence_id', $agenceId)->where('statut', 'Partielle')->count(),
+            'impayees'  => \App\Models\Facture::where('agence_id', $agenceId)->where('statut', 'Impayée')->count(),
         ];
     }
 
     /**
-     * Sparklines (7 derniers jours)
+     * Sparklines (7 derniers jours du mois sélectionné).
+     * OPTION B : on filtre par mois_facture pour les paiements,
+     * et on garde la date réelle pour affiner au jour près.
      */
     public function getSparklines(int $agenceId, Carbon $dateFiltre, string $moisFormat): array
     {
+        $moisLower = mb_strtolower($moisFormat);
         $sparkline_ca = [];
         $sparkline_depenses = [];
 
         for ($i = 6; $i >= 0; $i--) {
             $date = $dateFiltre->copy()->endOfMonth()->subDays($i);
 
-            // Sparkline CA : tous les paiements du jour dans le mois sélectionné
+            // CA : paiements dont la facture appartient au mois sélectionné
+            //      ET dont la date de paiement tombe ce jour précis
             $sparkline_ca[] = Paiement::where('paiements.agence_id', $agenceId)
                 ->join('factures', 'paiements.facture_id', '=', 'factures.id')
+                ->whereRaw('LOWER(factures.mois_facture) = ?', [$moisLower])
                 ->whereDate('paiements.date_paiement', $date->toDateString())
-                ->whereMonth('paiements.date_paiement', $dateFiltre->month)
-                ->whereYear('paiements.date_paiement', $dateFiltre->year)
                 ->sum('paiements.montant_verse')
                 + Visite::where('agence_id', $agenceId)
-                ->whereMonth('created_at', $dateFiltre->month)
-                ->whereYear('created_at', $dateFiltre->year)
                 ->whereDate('created_at', $date->toDateString())
                 ->sum('montant_paye');
 
             $sparkline_depenses[] = Depense::where('agence_id', $agenceId)
-                ->whereMonth('date_depense', $dateFiltre->month)
-                ->whereYear('date_depense', $dateFiltre->year)
                 ->whereDate('date_depense', $date->toDateString())
                 ->sum('montant');
         }
 
         return [
-            'sparkline_ca' => $sparkline_ca,
+            'sparkline_ca'       => $sparkline_ca,
             'sparkline_depenses' => $sparkline_depenses,
         ];
     }
@@ -237,20 +214,14 @@ class StatisticsService
     }
 
     /**
-     * Derniers paiements
+     * Derniers paiements du mois sélectionné.
+     * OPTION B : filtre strictement par mois_facture.
      */
     public function getRecentPayments(int $agenceId, string $moisFormat, ?Carbon $dateFiltre = null)
     {
-        $dateFiltre = $dateFiltre ?? Carbon::now();
         return Paiement::where('paiements.agence_id', $agenceId)
             ->join('factures', 'paiements.facture_id', '=', 'factures.id')
-            ->where(function ($q) use ($moisFormat, $dateFiltre) {
-                $q->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
-                  ->orWhere(function ($sub) use ($dateFiltre) {
-                      $sub->whereMonth('paiements.date_paiement', $dateFiltre->month)
-                          ->whereYear('paiements.date_paiement', $dateFiltre->year);
-                  });
-            })
+            ->whereRaw('LOWER(factures.mois_facture) = ?', [mb_strtolower($moisFormat)])
             ->with(['facture.contrat.locataire.user'])
             ->latest('date_paiement')
             ->take(5)
