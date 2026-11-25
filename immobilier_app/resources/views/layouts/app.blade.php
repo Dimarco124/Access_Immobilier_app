@@ -79,20 +79,28 @@
         }
 
         /* =============================================
-           SIDEBAR — transition fluide width + opacity
+           SIDEBAR — transition fluide douce et lente
            ============================================= */
-        .sidebar-fixed {
-            flex-shrink: 0;
+        .sidebar-container {
+            width: 260px;
             overflow: hidden;
-            /* Transition sur width ET opacity — donne un effet fondu + glissement */
-            transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-                        opacity 0.22s ease;
+            flex-shrink: 0;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.28s ease;
             will-change: width, opacity;
         }
-        .sidebar-fixed.sidebar-closed {
+
+        /* Quand la sidebar est fermée */
+        html.sidebar-collapsed .sidebar-container {
             width: 0 !important;
-            opacity: 0;
-            pointer-events: none;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* ANTI-SAUT : aucune transition tant que la page se charge */
+        html.no-nav-transition .sidebar-container,
+        html.no-nav-transition #app-surface {
+            transition: none !important;
         }
 
         /* =============================================
@@ -101,15 +109,15 @@
         #nav-loader {
             position: absolute;
             inset: 0;
-            background: rgba(248, 250, 252, 0.75);
-            backdrop-filter: blur(1px);
+            background: rgba(248, 250, 252, 0.82);
+            backdrop-filter: blur(1.5px);
             z-index: 999;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.15s ease;
+            transition: opacity 0.2s ease;
         }
         #nav-loader.visible {
             opacity: 1;
@@ -118,10 +126,10 @@
         .nav-spinner {
             width: 36px;
             height: 36px;
-            border: 3px solid #e2e8f0;
-            border-top-color: #3B5BDB;
+            border: 3.5px solid #e2e8f0;
+            border-top-color: #0284c7;
             border-radius: 50%;
-            animation: spin 0.7s linear infinite;
+            animation: spin 0.75s linear infinite;
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
@@ -258,11 +266,32 @@
         }
     </style>
 
-    {{-- Supprimer le nav-opening-drawer (ancien système drawer) --}}
+    <script>
+        // Anti-saut immédiat : appliquer l'état exact AVANT le premier affichage du body
+        (function() {
+            var isClosed = localStorage.getItem('sidebarOpen') === 'false';
+            if (isClosed) {
+                document.documentElement.classList.add('sidebar-collapsed');
+            }
+            // Bloque toute transition CSS pendant le chargement initial
+            document.documentElement.classList.add('no-nav-transition');
+        })();
+    </script>
 </head>
 
 <body class="font-sans antialiased overflow-hidden"
-    x-data="{ sidebarOpen: localStorage.getItem('sidebarOpen') !== 'false' }"
+    x-data="{
+        sidebarOpen: localStorage.getItem('sidebarOpen') !== 'false',
+        toggleSidebar() {
+            this.sidebarOpen = !this.sidebarOpen;
+            localStorage.setItem('sidebarOpen', this.sidebarOpen);
+            if (this.sidebarOpen) {
+                document.documentElement.classList.remove('sidebar-collapsed');
+            } else {
+                document.documentElement.classList.add('sidebar-collapsed');
+            }
+        }
+    }"
 >
     {{-- Layout principal : sidebar fixe à gauche + contenu à droite --}}
     <div class="h-screen w-screen flex overflow-hidden bg-[#f8fafc]">
@@ -282,10 +311,10 @@
             <nav
                 class="bg-white border-b border-slate-100 shrink-0 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-40">
                 <div class="flex items-center gap-3">
-                    <button @click="sidebarOpen = !sidebarOpen; localStorage.setItem('sidebarOpen', sidebarOpen)"
-                        class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 transition-colors group"
+                    <button @click="toggleSidebar()"
+                        class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 hover:text-[#0284c7] hover:bg-sky-50 transition-colors group"
                         :title="sidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'">
-                        <i class="fas fa-bars-staggered text-lg text-slate-700 group-hover:text-blue-600"></i>
+                        <i class="fas fa-bars-staggered text-lg text-slate-700 group-hover:text-[#0284c7]"></i>
                     </button>
 
                     <div class="flex items-center gap-2.5">
@@ -584,41 +613,13 @@
             });
 
             // ============================================================
-            // SIDEBAR : toggle avec classe CSS (transition gérée en CSS)
+            // ANTI-SAUT : Réactiver les transitions après le rendu initial
             // ============================================================
-            const sidebar = document.querySelector('.sidebar-fixed');
-
-            function applySidebarState(open) {
-                if (sidebar) {
-                    if (open) {
-                        sidebar.classList.remove('sidebar-closed');
-                    } else {
-                        sidebar.classList.add('sidebar-closed');
-                    }
-                }
-            }
-
-            // Appliquer l'état initial immédiatement (sans transition)
-            const initialOpen = localStorage.getItem('sidebarOpen') !== 'false';
-            if (sidebar) {
-                // Désactiver la transition le temps de l'état initial
-                sidebar.style.transition = 'none';
-                applySidebarState(initialOpen);
-                // Réactiver la transition après le premier rendu
-                requestAnimationFrame(() => {
-                    sidebar.style.transition = '';
-                });
-            }
-
-            // Écouter les clics sur les boutons toggle (Alpine met à jour localStorage)
-            // On surveille localStorage pour synchroniser la classe CSS
-            const originalSetItem = localStorage.setItem.bind(localStorage);
-            localStorage.setItem = function(key, value) {
-                originalSetItem(key, value);
-                if (key === 'sidebarOpen') {
-                    applySidebarState(value !== 'false');
-                }
-            };
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    document.documentElement.classList.remove('no-nav-transition');
+                }, 60);
+            });
 
             // ============================================================
             // SPINNER DE NAVIGATION — affiché dans #app-surface
