@@ -81,7 +81,7 @@
     <!-- Brand Header -->
     <div class="shrink-0 pb-3 mb-1 border-b border-white/20">
         <div class="flex items-center justify-between">
-            <a href="{{ route('dashboard') }}" @click="sessionStorage.setItem('menuOpenAfterNav', 'true')" class="flex items-center gap-2.5 group min-w-0">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 group min-w-0">
                 <div class="w-9 h-9 rounded-xl bg-white text-[#3B5BDB] flex items-center justify-center font-black text-base shadow-sm shrink-0 group-hover:scale-105 transition-transform overflow-hidden p-1">
                     @if(Auth::user()->agence && Auth::user()->agence->logo_url)
                         <img src="{{ Auth::user()->agence->logo_url }}" alt="Logo" class="h-full w-full object-contain">
@@ -97,7 +97,7 @@
                     </span>
                 </div>
             </a>
-            <button @click="menuOpen = false; sessionStorage.removeItem('menuOpenAfterNav')" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all shrink-0" title="Fermer le menu">
+            <button @click="menuOpen = false" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all shrink-0 cursor-pointer" title="Fermer le menu">
                 <i class="fas fa-times text-xs"></i>
             </button>
         </div>
@@ -114,7 +114,6 @@
                 }
             @endphp
             <a href="{{ route($item['route']) }}"
-                @click="sessionStorage.setItem('menuOpenAfterNav', 'true')"
                 class="flex items-center gap-2.5 px-3 py-1.5 sm:py-2 rounded-xl transition-all duration-150 group {{ $isActive ? 'bg-white text-[#3B5BDB] font-extrabold shadow-sm' : 'text-white/85 hover:text-white hover:bg-white/10 font-bold' }}">
                 <div class="shrink-0 w-6 h-6 rounded-md flex items-center justify-center {{ $isActive ? 'text-[#3B5BDB]' : 'text-white/80 group-hover:text-white' }} transition-colors">
                     <i class="{{ $item['icon'] }} text-xs"></i>
@@ -130,12 +129,12 @@
     <!-- Drawer Footer Actions -->
     <div class="pt-2.5 mt-1 border-t border-white/20 shrink-0 space-y-2">
         <div class="flex items-center gap-2">
-            <a href="{{ route('profile.edit') }}" @click="sessionStorage.setItem('menuOpenAfterNav', 'true')" class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white/90 hover:text-white hover:bg-white/10 transition-colors">
+            <a href="{{ route('profile.edit') }}" class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white/90 hover:text-white hover:bg-white/10 transition-colors">
                 <i class="fas fa-user-circle text-white/80 text-xs"></i>
                 <span>Mon Profil</span>
             </a>
             @if(Auth::user()->hasRole('admin'))
-                <a href="{{ route('agence.parametres') }}" @click="sessionStorage.setItem('menuOpenAfterNav', 'true')" class="flex items-center justify-center w-7 h-7 rounded-lg text-white/90 hover:text-white hover:bg-white/10 transition-colors" title="Paramètres de l'agence">
+                <a href="{{ route('agence.parametres') }}" class="flex items-center justify-center w-7 h-7 rounded-lg text-white/90 hover:text-white hover:bg-white/10 transition-colors" title="Paramètres de l'agence">
                     <i class="fas fa-cog text-white/80 text-xs"></i>
                 </a>
             @endif
