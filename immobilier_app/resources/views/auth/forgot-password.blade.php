@@ -1,72 +1,85 @@
 <x-guest-layout :fullWidth="true">
-    <div class="min-h-screen bg-white flex">
-        <!-- Left side: Image/Branding -->
-        <div class="hidden lg:block relative w-0 flex-1">
-            <img class="absolute inset-0 h-full w-full object-cover" src="https://images.unsplash.com/photo-1554224155-1696413565d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80" alt="Récupération">
-            <div class="absolute inset-0 bg-blue-600 mix-blend-multiply opacity-20"></div>
-            <div class="absolute inset-0 flex items-center justify-center p-20 text-white">
-                <div class="max-w-md">
-                    <h2 class="text-5xl font-black uppercase tracking-tighter leading-none mb-6 text-white">Pas de panique.</h2>
-                    <p class="text-xl font-medium text-blue-50 leading-relaxed">Entrez votre email et nous vous enverrons un lien pour réinitialiser votre accès en toute sécurité.</p>
-                </div>
-            </div>
-        </div>
+    <div class="min-h-screen bg-[#F4F6FA] flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-5xl w-full mx-auto">
+            <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden grid lg:grid-cols-12">
 
-        <!-- Right side: Form -->
-        <div class="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24 bg-white z-10">
-            <div class="mx-auto w-full max-w-md lg:w-[480px]">
-                <!-- Bouton Retour à l'accueil -->
-                <div class="mb-8 flex items-center justify-between">
-                    <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50 shadow-sm transition-all hover:-translate-x-0.5 group">
-                        <i class="fas fa-arrow-left text-[11px] text-gray-400 group-hover:text-blue-600 transition-transform group-hover:-translate-x-1"></i>
-                        <span>Retour à l'accueil</span>
-                    </a>
-                    <a href="{{ route('login') }}" class="text-xs font-bold text-blue-600 hover:text-blue-700 uppercase tracking-widest">
-                        Connexion
-                    </a>
+                <!-- Colonne gauche : Panneau bleu/indigo -->
+                <div class="hidden lg:block lg:col-span-5 p-4">
+                    <div class="relative h-full min-h-[480px] rounded-[2rem] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-10 text-white overflow-hidden flex flex-col justify-between">
+                        <div class="pointer-events-none absolute -top-14 -right-14 w-56 h-56 rounded-full bg-white/10"></div>
+                        <div class="pointer-events-none absolute bottom-12 -left-12 w-44 h-44 rounded-full bg-white/10"></div>
+
+                        <div class="relative z-10">
+                            <span class="inline-block px-3 py-1 rounded-full bg-white/15 text-[10px] font-black uppercase tracking-widest mb-4">
+                                Récupération Sécurisée
+                            </span>
+                            <h2 class="text-3xl font-black leading-tight tracking-tight mb-3">
+                                Pas de panique.
+                            </h2>
+                            <p class="text-sm text-blue-50/90 leading-relaxed font-medium">
+                                Entrez votre adresse email et nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe.
+                            </p>
+                        </div>
+
+                        <div class="relative z-10 rounded-2xl overflow-hidden border-2 border-white/25 shadow-2xl">
+                            <img src="https://images.unsplash.com/photo-1554224155-1696413565d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80"
+                                 alt="Récupération"
+                                 class="w-full h-52 object-cover">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-8">
-                    <a href="{{ url('/') }}" class="inline-block transition-transform hover:scale-105">
-                        <img src="{{ asset('images/logo.svg') }}" alt="Habitat Immobilier" class="h-12 w-auto">
-                    </a>
-                </div>
-                <div>
-                    <h2 class="mt-8 text-4xl font-black text-gray-900 uppercase tracking-tight leading-none">Oubli ?</h2>
-                    <p class="mt-4 text-lg text-gray-500 font-medium italic">
-                        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link.') }}
+                <!-- Colonne droite : Formulaire -->
+                <div class="lg:col-span-7 p-7 sm:p-10 lg:p-12 flex flex-col justify-center">
+                    <div class="flex items-center justify-between gap-4 mb-8">
+                        <a href="{{ url('/') }}" class="inline-block transition-transform hover:scale-105">
+                            <img src="{{ asset('images/logo.svg') }}" alt="Habitat Immobilier" class="h-10 w-auto">
+                        </a>
+                        <a href="{{ url('/') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F4F6FA] border border-slate-200/80 text-xs font-bold text-slate-600 hover:text-blue-600 transition group">
+                            <i class="fas fa-arrow-left text-[10px] text-slate-400 group-hover:text-blue-600"></i>
+                            <span>Accueil</span>
+                        </a>
+                    </div>
+
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest mb-3 w-fit">
+                        Mot de passe oublié
+                    </span>
+                    <h1 class="text-3xl font-black text-slate-900 tracking-tight">
+                        Réinitialisation
+                    </h1>
+                    <p class="mt-2 text-sm text-slate-500 font-medium">
+                        Indiquez votre adresse email pour recevoir le lien de réinitialisation.
                     </p>
-                </div>
 
-                <!-- Session Status -->
-                <x-auth-session-status class="mt-6 mb-4" :status="session('status')" />
+                    <x-auth-session-status class="mt-6 mb-4" :status="session('status')" />
 
-                <div class="mt-12">
-                    <form method="POST" action="{{ route('password.email') }}" class="space-y-8">
+                    <form method="POST" action="{{ route('password.email') }}" class="mt-8 space-y-6">
                         @csrf
 
-                        <!-- Email Address -->
                         <div>
-                            <label for="email" class="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-3">
+                            <label for="email" class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">
                                 Votre Adresse Email
                             </label>
-                            <div class="mt-1">
-                                <input id="email" name="email" type="email" :value="old('email')" required autofocus class="appearance-none block w-full px-5 py-4 border border-gray-100 bg-gray-50 rounded-2xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-bold transition-all" placeholder="nom@exemple.com">
-                            </div>
+                            <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus
+                                class="block w-full px-4 py-3.5 bg-[#F4F6FA] border border-slate-200/80 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                                placeholder="nom@exemple.com">
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
                         </div>
 
                         <div class="flex flex-col space-y-4">
-                            <button type="submit" class="w-full flex justify-center py-5 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-100 text-sm font-black text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 uppercase tracking-widest transition transform hover:-translate-y-1 active:scale-95">
-                                {{ __('Email Password Reset Link') }}
+                            <button type="submit"
+                                class="w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-200/70 transition transform hover:-translate-y-0.5 cursor-pointer">
+                                <span>Envoyer le lien de réinitialisation</span>
+                                <i class="fas fa-paper-plane text-[11px]"></i>
                             </button>
 
-                            <a href="{{ route('login') }}" class="text-center text-sm font-bold text-gray-400 hover:text-blue-600 transition uppercase tracking-widest">
-                                <i class="fas fa-arrow-left mr-2"></i> Retour à la connexion
+                            <a href="{{ route('login') }}" class="text-center text-xs font-extrabold text-slate-500 hover:text-blue-600 transition uppercase tracking-wider">
+                                <i class="fas fa-arrow-left mr-1.5"></i> Retour à la connexion
                             </a>
                         </div>
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
