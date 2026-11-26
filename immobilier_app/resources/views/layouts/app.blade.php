@@ -667,6 +667,33 @@
                     });
                 });
             }
+
+            // ============================================================
+            // RAFRAÎCHISSEMENT SILENCIEUX CSRF (évite les erreurs 419)
+            // ============================================================
+            const refreshCsrfToken = () => {
+                fetch('{{ route('csrf.refresh') }}', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.ok ? res.json() : null)
+                .then(data => {
+                    if (data && data.token) {
+                        const meta = document.querySelector('meta[name="csrf-token"]');
+                        if (meta) meta.setAttribute('content', data.token);
+                        document.querySelectorAll('input[name="_token"]').forEach(input => {
+                            input.value = data.token;
+                        });
+                    }
+                })
+                .catch(() => {});
+            };
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) refreshCsrfToken();
+            });
+            setInterval(refreshCsrfToken, 15 * 60 * 1000);
         });
     </script>
     @stack('scripts')

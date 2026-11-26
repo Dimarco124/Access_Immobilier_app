@@ -24,8 +24,22 @@
                 </div>
 
                 <div class="mt-12">
+                    @if (session('status'))
+                        <div class="mb-6 p-4 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold flex items-center gap-3">
+                            <i class="fas fa-info-circle text-blue-500 text-base shrink-0"></i>
+                            <span>{{ session('status') }}</span>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 text-xs font-bold flex items-center gap-3">
+                            <i class="fas fa-exclamation-circle text-red-500 text-base shrink-0"></i>
+                            <span>{{ session('error') }}</span>
+                        </div>
+                    @endif
+
                     <div class="mt-6">
-                        <form method="POST" action="{{ route('login') }}" class="space-y-8">
+                        <form id="login-form" method="POST" action="{{ route('login') }}" class="space-y-8">
                             @csrf
 
                             <div>
@@ -94,4 +108,36 @@
             </div>
         </div>
     </div>
+
+    <script>
+        (function () {
+            const refreshCsrfToken = () => {
+                fetch('{{ route('csrf.refresh') }}', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.ok ? res.json() : null)
+                .then(data => {
+                    if (data && data.token) {
+                        const meta = document.querySelector('meta[name="csrf-token"]');
+                        if (meta) meta.setAttribute('content', data.token);
+                        document.querySelectorAll('input[name="_token"]').forEach(input => {
+                            input.value = data.token;
+                        });
+                    }
+                })
+                .catch(() => {});
+            };
+
+            // Rafraîchir dès que l'utilisateur revient sur l'onglet
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) refreshCsrfToken();
+            });
+
+            // Rafraîchir aussi toutes les 15 minutes et au focus d'un champ
+            setInterval(refreshCsrfToken, 15 * 60 * 1000);
+            document.getElementById('email')?.addEventListener('focus', refreshCsrfToken, { once: false });
+        })();
+    </script>
 </x-guest-layout>

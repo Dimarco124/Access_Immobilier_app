@@ -25,6 +25,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Rafraîchissement silencieux du jeton CSRF pour éviter les erreurs 419 après inactivité
+Route::get('/csrf-refresh', function () {
+    return response()->json(['token' => csrf_token()]);
+})->name('csrf.refresh');
+
 // Inscription Agence
 Route::get('/inscription-agence', [AgencyRegisterController::class, 'showRegistrationForm'])->name('register.agency');
 Route::post('/inscription-agence', [AgencyRegisterController::class, 'register'])->name('register.agency.post');
