@@ -17,7 +17,7 @@
         }
 
         .glass-nav {
-            background: rgba(250, 251, 255, 0.88);
+            background: rgba(244, 246, 250, 0.88);
             backdrop-filter: blur(14px);
         }
 
@@ -27,7 +27,7 @@
     </style>
 </head>
 
-<body class="antialiased bg-[#FAFBFF] text-slate-900 overflow-x-hidden">
+<body class="antialiased bg-[#F4F6FA] text-slate-900 overflow-x-hidden">
     <!-- Décor latéral discret rappelant la silhouette organique du design -->
     <div class="pointer-events-none fixed inset-x-0 top-52 -z-10 flex justify-between opacity-25">
         <div class="w-40 h-96 bg-gradient-to-r from-blue-400/40 to-transparent rounded-r-full blur-2xl"></div>
@@ -80,7 +80,7 @@
     <!-- HERO SECTION : Carte arrondie avec découpe architecturale en bas à gauche -->
     <header class="pt-28 pb-14 lg:pt-32 lg:pb-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="relative rounded-[2.25rem] sm:rounded-[2.75rem] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 overflow-hidden shadow-2xl shadow-blue-200/70">
+            <div class="relative rounded-[2.25rem] sm:rounded-[2.75rem] bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 overflow-hidden">
                 <!-- Bulles décoratives translucides -->
                 <div class="pointer-events-none absolute -top-16 left-1/3 w-72 h-72 rounded-full hero-bubble"></div>
                 <div class="pointer-events-none absolute bottom-12 right-12 w-56 h-56 rounded-full hero-bubble"></div>
@@ -138,10 +138,10 @@
                     </div>
                 </div>
 
-                <!-- Barre inférieure avec découpe blanche en bas à gauche (style exact du modèle) -->
+                <!-- Barre inférieure avec découpe gris clair identique au fond du site -->
                 <div class="relative z-20 flex flex-col md:flex-row items-stretch md:items-end justify-between">
-                    <!-- Découpe blanche gauche contenant le gros titre H1 -->
-                    <div class="bg-[#FAFBFF] pt-6 pb-4 pr-8 pl-6 sm:pl-10 lg:pl-12 md:rounded-tr-[2.5rem] max-w-2xl">
+                    <!-- Découpe gauche contenant le gros titre H1 (même couleur #F4F6FA que le body) -->
+                    <div class="bg-[#F4F6FA] pt-6 pb-4 pr-8 pl-6 sm:pl-10 lg:pl-12 md:rounded-tr-[2.5rem] max-w-2xl">
                         <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest mb-3">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
                             Plateforme Immobilière N°1
