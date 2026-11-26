@@ -109,9 +109,9 @@
         #nav-loader {
             position: absolute;
             inset: 0;
-            background: rgba(248, 250, 252, 0.82);
+            background: rgba(248, 250, 252, 0.85);
             backdrop-filter: blur(1.5px);
-            z-index: 999;
+            z-index: 40;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -566,7 +566,7 @@
             setTimeout(teleportAllModals, 100);
             setTimeout(teleportAllModals, 400);
 
-            // Prevent double form submission + afficher le spinner
+            // Prevent double form submission (état de chargement sur le bouton uniquement)
             document.querySelectorAll('form').forEach(form => {
                 form.addEventListener('submit', function (e) {
                     if (this.dataset.submitted) {
@@ -575,10 +575,7 @@
                     }
                     this.dataset.submitted = 'true';
 
-                    // Afficher le spinner de navigation
-                    showNavLoader();
-
-                    // Disable all buttons in this form
+                    // Disable all buttons in this form and show spinner inside the button
                     const buttons = this.querySelectorAll('button[type="submit"], input[type="submit"]');
                     const originalStates = [];
 
@@ -589,18 +586,17 @@
                             classes: btn.className
                         };
                         btn.disabled = true;
-                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                        btn.classList.add('opacity-60', 'cursor-not-allowed');
                         if (btn.dataset.loadingText) {
                             btn.textContent = btn.dataset.loadingText;
                         } else {
-                            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Chargement...';
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Traitement...';
                         }
                     });
 
                     // Reset after 5 seconds (fallback)
                     setTimeout(() => {
                         this.dataset.submitted = '';
-                        hideNavLoader();
                         buttons.forEach((btn, index) => {
                             if (originalStates[index]) {
                                 btn.disabled = originalStates[index].disabled;

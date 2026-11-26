@@ -990,7 +990,7 @@
     </div>
 
     <!-- Modal 1: Remboursement Caution (Style uniforme avec le reste de l'application) -->
-    <div id="remboursementModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div id="remboursementModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[1000] hidden items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto my-auto overflow-hidden relative">
             <div class="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                 <div class="flex items-center justify-between">
@@ -1040,7 +1040,7 @@
     </div>
 
     <!-- Modal 2: Créer un Reversement Individuel (Style uniforme avec le reste de l'application) -->
-    <div id="reversementModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div id="reversementModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[1000] hidden items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto my-auto overflow-hidden relative">
             <div class="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                 <div class="flex items-center justify-between">
@@ -1119,7 +1119,7 @@
     </div>
 
     <!-- Modal 3: Reversement en Masse (Style uniforme avec le reste de l'application) -->
-    <div id="batchReversementModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div id="batchReversementModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[1000] hidden items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto my-auto overflow-hidden relative">
             <div class="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                 <div class="flex items-center justify-between">
