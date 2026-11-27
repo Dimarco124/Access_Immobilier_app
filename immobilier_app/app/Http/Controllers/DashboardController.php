@@ -60,10 +60,11 @@ class DashboardController extends Controller
             $userModules = ['immobilier', 'commercial', 'finance', 'maintenance', 'relation_client', 'proprietaires'];
         }
 
-        // Gestion du filtre par mois
+        // Gestion du filtre par mois (affichage en français partout)
         $moisSelectionne = request('mois');
         $dateFiltre = $moisSelectionne ? Carbon::parse($moisSelectionne) : now();
-        $moisFormat = $dateFiltre->translatedFormat('F Y');
+        $moisFormat = ucfirst($dateFiltre->copy()->locale('fr')->translatedFormat('F Y'));
+        $moisSql = $dateFiltre->copy()->locale('en')->translatedFormat('F Y');
         $moisInputValue = $dateFiltre->format('Y-m');
 
         // Liste des mois pour le sélecteur (inclut les 2 prochains mois pour les avances)
@@ -72,7 +73,7 @@ class DashboardController extends Controller
             $d = now()->subMonths($i);
             $listeMois[] = [
                 'value' => $d->format('Y-m'),
-                'label' => $d->translatedFormat('F Y')
+                'label' => ucfirst($d->copy()->locale('fr')->translatedFormat('F Y'))
             ];
         }
 
@@ -80,13 +81,13 @@ class DashboardController extends Controller
         $baseStats = $this->dashboardService->getBaseStats($agenceId);
 
         // 2. Flux financiers
-        $financialFlows = $this->dashboardService->getFinancialFlows($agenceId, $moisFormat, $dateFiltre);
+        $financialFlows = $this->dashboardService->getFinancialFlows($agenceId, $moisSql, $dateFiltre);
 
         // 3. Reversements propriétaires
-        $reversements = $this->dashboardService->getOwnerReversals($agenceId, $moisFormat, $dateFiltre);
+        $reversements = $this->dashboardService->getOwnerReversals($agenceId, $moisSql, $dateFiltre);
 
         // 4. Taux de recouvrement
-        $tauxRecouvrement = $this->dashboardService->getCollectionRate($agenceId, $moisFormat, $dateFiltre);
+        $tauxRecouvrement = $this->dashboardService->getCollectionRate($agenceId, $moisSql, $dateFiltre);
 
         // 5. Taux d'occupation
         $occupation = $this->dashboardService->getOccupancyRate($agenceId);
@@ -99,16 +100,16 @@ class DashboardController extends Controller
 
         // 8. Graphiques et statistiques
         $chartData = $this->statisticsService->getRevenueExpenseChart($agenceId);
-        $caParType = $this->statisticsService->getRevenueByPropertyType($agenceId, $moisFormat, $dateFiltre);
+        $caParType = $this->statisticsService->getRevenueByPropertyType($agenceId, $moisSql, $dateFiltre);
         $repartition_parc = $this->statisticsService->getPropertyDistribution(
             $agenceId,
             $occupation['total_biens'],
             $occupation['biens_loues']
         );
         $performance_paiement = $this->statisticsService->getPaymentPerformance($agenceId);
-        $sparklines = $this->statisticsService->getSparklines($agenceId, $dateFiltre, $moisFormat);
+        $sparklines = $this->statisticsService->getSparklines($agenceId, $dateFiltre, $moisSql);
         $listeNoire = $this->statisticsService->getBlacklist($agenceId);
-        $derniers_paiements = $this->statisticsService->getRecentPayments($agenceId, $moisFormat, $dateFiltre);
+        $derniers_paiements = $this->statisticsService->getRecentPayments($agenceId, $moisSql, $dateFiltre);
 
         // Compilation des stats
         $stats = array_merge($baseStats, [
@@ -196,17 +197,8 @@ class DashboardController extends Controller
 
         $moisSelectionne = request('mois');
         $dateFiltre = $moisSelectionne ? Carbon::parse($moisSelectionne) : now();
-        $moisFormat = $dateFiltre->translatedFormat('F Y');
+        $moisFormat = ucfirst($dateFiltre->copy()->locale('fr')->translatedFormat('F Y'));
         $moisInputValue = $dateFiltre->format('Y-m');
-
-        $listeMois = [];
-        for ($i = -2; $i < 24; $i++) {
-            $d = now()->subMonths($i);
-            $listeMois[] = [
-                'value' => $d->format('Y-m'),
-                'label' => $d->translatedFormat('F Y')
-            ];
-        }
 
         $stats = $this->ownerDashboardService->getOwnerStats($proprietaire, $dateFiltre);
         $derniers_paiements = $this->ownerDashboardService->getRecentPayments($proprietaire);
@@ -219,8 +211,7 @@ class DashboardController extends Controller
             'mes_familles',
             'tickets_en_cours',
             'moisFormat',
-            'moisInputValue',
-            'listeMois'
+            'moisInputValue'
         ));
     }
 
@@ -233,9 +224,14 @@ class DashboardController extends Controller
         if (!$user->hasRole('proprietaire')) abort(403);
 
         $proprietaire = $user->proprietaire;
-        $reportData = $this->ownerDashboardService->getFinanceReport($proprietaire);
+        $moisSelectionne = request('mois');
+        $dateFiltre = $moisSelectionne ? Carbon::parse($moisSelectionne) : now();
+        $moisFormat = ucfirst($dateFiltre->copy()->locale('fr')->translatedFormat('F Y'));
+        $moisInputValue = $dateFiltre->format('Y-m');
 
-        return view('proprietaires.report', $reportData);
+        $reportData = $this->ownerDashboardService->getFinanceReport($proprietaire, $dateFiltre);
+
+        return view('proprietaires.report', array_merge($reportData, compact('moisFormat', 'moisInputValue')));
     }
 
     /**

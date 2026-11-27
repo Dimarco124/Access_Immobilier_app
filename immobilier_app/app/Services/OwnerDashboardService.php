@@ -58,13 +58,24 @@ class OwnerDashboardService
     }
 
     /**
+     * Retourne les variantes FR et EN en minuscules d'un mois (ex: ['december 2026', 'décembre 2026'])
+     * pour garantir la correspondance en base quelle que soit la locale d'enregistrement.
+     */
+    private function getMonthVariants(Carbon $date): array
+    {
+        return [
+            mb_strtolower($date->copy()->locale('en')->translatedFormat('F Y')),
+            mb_strtolower($date->copy()->locale('fr')->translatedFormat('F Y')),
+        ];
+    }
+
+    /**
      * Récupère les statistiques du propriétaire (exclusivement ses biens et ses loyers nets, sans cautions ni frais agence).
      */
     public function getOwnerStats(Proprietaire $proprietaire, ?Carbon $dateFiltre = null): array
     {
         $dateFiltre = $dateFiltre ?? Carbon::now();
-        $moisFormat = $dateFiltre->translatedFormat('F Y');
-        $moisLower = mb_strtolower($moisFormat);
+        $monthVariants = $this->getMonthVariants($dateFiltre);
 
         $totalBiens = Bien::where('proprietaire_id', $proprietaire->id)
             ->whereNotNull('famille_de_bien_id')
@@ -85,8 +96,8 @@ class OwnerDashboardService
             ->filter(fn ($p) => $p->montant_loyer_brut > 0);
 
         // Paiements du mois sélectionné (Option B : strictement par mois_facture)
-        $paiementsMois = $tousPaiements->filter(function ($p) use ($moisLower) {
-            return mb_strtolower($p->facture->mois_facture ?? '') === $moisLower;
+        $paiementsMois = $tousPaiements->filter(function ($p) use ($monthVariants) {
+            return in_array(mb_strtolower($p->facture->mois_facture ?? ''), $monthVariants, true);
         });
 
         $loyersBrutsMois = (float) $paiementsMois->sum('montant_loyer_brut');
@@ -104,8 +115,8 @@ class OwnerDashboardService
 
         // Reversements déjà effectués pour ce mois
         $reverseMois = (float) Reversement::where('proprietaire_id', $proprietaire->id)
-            ->where(function ($q) use ($moisLower, $dateFiltre) {
-                $q->whereRaw('LOWER(periode) = ?', [$moisLower])
+            ->where(function ($q) use ($monthVariants, $dateFiltre) {
+                $q->whereRaw('LOWER(periode) IN (?, ?)', $monthVariants)
                   ->orWhere(function ($sub) use ($dateFiltre) {
                       $sub->whereMonth('date_reversement', $dateFiltre->month)
                           ->whereYear('date_reversement', $dateFiltre->year);
@@ -218,12 +229,15 @@ class OwnerDashboardService
     }
 
     /**
-     * Génère le rapport financier du propriétaire (strictement ses loyers, commissions sur loyers, dépenses et reversements).
+     * Génère le rapport financier du propriétaire filtré par mois (Option B : par mois_facture).
      */
-    public function getFinanceReport(Proprietaire $proprietaire): array
+    public function getFinanceReport(Proprietaire $proprietaire, ?Carbon $dateFiltre = null): array
     {
+        $dateFiltre = $dateFiltre ?? Carbon::now();
+        $monthVariants = $this->getMonthVariants($dateFiltre);
+
         // Tous les paiements liés aux biens du propriétaire (part loyer uniquement)
-        $paiements = Paiement::whereHas('facture.contrat.bien', function ($q) use ($proprietaire) {
+        $tousPaiements = Paiement::whereHas('facture.contrat.bien', function ($q) use ($proprietaire) {
             $q->where('proprietaire_id', $proprietaire->id);
         })
             ->with(['facture.contrat.bien', 'facture.contrat.locataire.user'])
@@ -233,16 +247,30 @@ class OwnerDashboardService
             ->filter(fn ($p) => $p->montant_loyer_brut > 0)
             ->values();
 
-        // Dépenses imputées aux biens du propriétaire
+        // Paiements du mois sélectionné (Option B)
+        $paiements = $tousPaiements->filter(function ($p) use ($monthVariants) {
+            return in_array(mb_strtolower($p->facture->mois_facture ?? ''), $monthVariants, true);
+        })->values();
+
+        // Dépenses imputées aux biens du propriétaire sur le mois sélectionné
         $depenses = Depense::whereHas('bien', function ($q) use ($proprietaire) {
             $q->where('proprietaire_id', $proprietaire->id);
         })
+            ->whereMonth('date_depense', $dateFiltre->month)
+            ->whereYear('date_depense', $dateFiltre->year)
             ->with(['bien'])
             ->latest('date_depense')
             ->get();
 
-        // Reversements reçus par le propriétaire
+        // Reversements reçus par le propriétaire pour le mois sélectionné
         $reversements = Reversement::where('proprietaire_id', $proprietaire->id)
+            ->where(function ($q) use ($monthVariants, $dateFiltre) {
+                $q->whereRaw('LOWER(periode) IN (?, ?)', $monthVariants)
+                  ->orWhere(function ($sub) use ($dateFiltre) {
+                      $sub->whereMonth('date_reversement', $dateFiltre->month)
+                          ->whereYear('date_reversement', $dateFiltre->year);
+                  });
+            })
             ->latest('date_reversement')
             ->get();
 
@@ -262,7 +290,7 @@ class OwnerDashboardService
             'solde_a_recevoir' => round($soldeARecevoir),
         ];
 
-        // Graphiques 12 mois (Option B : par mois_facture)
+        // Graphiques 12 mois en français (Option B : par mois_facture)
         $moisLabels = [];
         $revenusMensuels = [];
         $commissionsMensuelles = [];
@@ -270,12 +298,11 @@ class OwnerDashboardService
 
         for ($i = 11; $i >= 0; $i--) {
             $date = now()->subMonths($i);
-            $moisFormat = $date->translatedFormat('F Y');
-            $moisLower = mb_strtolower($moisFormat);
-            $moisLabels[] = $moisFormat;
+            $variants = $this->getMonthVariants($date);
+            $moisLabels[] = ucfirst($date->copy()->locale('fr')->translatedFormat('F Y'));
 
-            $paiementsMois = $paiements->filter(function ($p) use ($moisLower) {
-                return mb_strtolower($p->facture->mois_facture ?? '') === $moisLower;
+            $paiementsMois = $tousPaiements->filter(function ($p) use ($variants) {
+                return in_array(mb_strtolower($p->facture->mois_facture ?? ''), $variants, true);
             });
 
             $revenusMensuels[] = floatval($paiementsMois->sum('montant_loyer_brut'));

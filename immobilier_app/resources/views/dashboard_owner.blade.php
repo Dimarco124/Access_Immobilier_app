@@ -6,26 +6,15 @@
                 <p class="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1">Bienvenue, {{ Auth::user()->name }}</p>
             </div>
 
-            {{-- Sélecteur de mois --}}
-            <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs self-start md:self-auto">
-                @php
-                    $prevMois = \Carbon\Carbon::parse($moisInputValue)->subMonth()->format('Y-m');
-                    $nextMois = \Carbon\Carbon::parse($moisInputValue)->addMonth()->format('Y-m');
-                @endphp
-                <a href="{{ route('dashboard', ['mois' => $prevMois]) }}" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition" title="Mois précédent">
-                    <i class="fas fa-chevron-left text-xs"></i>
-                </a>
-                <select name="mois" onchange="this.form.submit()" class="border-0 bg-transparent text-xs font-black text-slate-700 uppercase tracking-wider focus:ring-0 py-1 pr-6 cursor-pointer">
-                    @foreach($listeMois as $m)
-                        <option value="{{ $m['value'] }}" {{ $m['value'] === $moisInputValue ? 'selected' : '' }}>
-                            {{ $m['label'] }}
-                        </option>
-                    @endforeach
-                </select>
-                <a href="{{ route('dashboard', ['mois' => $nextMois]) }}" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition" title="Mois suivant">
-                    <i class="fas fa-chevron-right text-xs"></i>
-                </a>
-            </form>
+            {{-- Sélecteur de mois identique à l'espace agence --}}
+            <div class="w-full md:w-auto">
+                <x-month-picker
+                    :value="$moisInputValue"
+                    :label="$moisFormat"
+                    :action="route('dashboard')"
+                    :resetUrl="route('dashboard')"
+                />
+            </div>
         </div>
     </x-slot>
 

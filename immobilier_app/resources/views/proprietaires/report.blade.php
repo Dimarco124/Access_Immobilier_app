@@ -1,16 +1,26 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-3 w-full">
-            <h2 class="font-black text-2xl text-slate-900 uppercase tracking-tight">
-                Rapport Financier
-            </h2>
-            <p class="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
-                Suivi exclusif de vos loyers, déductions et reversements (hors cautions et frais d'agence)
-            </p>
-            <div class="mt-1">
-                <a href="{{ route('dashboard') }}" class="text-xs font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-widest inline-flex items-center gap-2">
-                    <i class="fas fa-arrow-left"></i> Retour au tableau de bord
-                </a>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+            <div class="flex flex-col gap-2">
+                <h2 class="font-black text-2xl text-slate-900 uppercase tracking-tight">
+                    Rapport Financier
+                </h2>
+                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
+                    Suivi exclusif de vos loyers, déductions et reversements • {{ $moisFormat }}
+                </p>
+                <div class="mt-1">
+                    <a href="{{ route('dashboard') }}" class="text-xs font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-widest inline-flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+                    </a>
+                </div>
+            </div>
+            <div class="w-full md:w-auto">
+                <x-month-picker
+                    :value="$moisInputValue"
+                    :label="$moisFormat"
+                    :action="route('owner.finance-report')"
+                    :resetUrl="route('owner.finance-report')"
+                />
             </div>
         </div>
     </x-slot>
