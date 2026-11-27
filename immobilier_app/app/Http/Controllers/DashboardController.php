@@ -194,7 +194,21 @@ class DashboardController extends Controller
     {
         $proprietaire = $user->proprietaire;
 
-        $stats = $this->ownerDashboardService->getOwnerStats($proprietaire);
+        $moisSelectionne = request('mois');
+        $dateFiltre = $moisSelectionne ? Carbon::parse($moisSelectionne) : now();
+        $moisFormat = $dateFiltre->translatedFormat('F Y');
+        $moisInputValue = $dateFiltre->format('Y-m');
+
+        $listeMois = [];
+        for ($i = -2; $i < 24; $i++) {
+            $d = now()->subMonths($i);
+            $listeMois[] = [
+                'value' => $d->format('Y-m'),
+                'label' => $d->translatedFormat('F Y')
+            ];
+        }
+
+        $stats = $this->ownerDashboardService->getOwnerStats($proprietaire, $dateFiltre);
         $derniers_paiements = $this->ownerDashboardService->getRecentPayments($proprietaire);
         $tickets_en_cours = $this->ownerDashboardService->getOpenTickets($proprietaire);
         $mes_familles = $this->ownerDashboardService->getFamiliesWithRevenues($proprietaire);
@@ -203,7 +217,10 @@ class DashboardController extends Controller
             'stats',
             'derniers_paiements',
             'mes_familles',
-            'tickets_en_cours'
+            'tickets_en_cours',
+            'moisFormat',
+            'moisInputValue',
+            'listeMois'
         ));
     }
 
