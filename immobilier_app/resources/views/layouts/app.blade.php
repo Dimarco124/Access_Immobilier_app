@@ -489,7 +489,49 @@
 
                 <!-- Page Content -->
                 <main class="py-4 md:py-8">
-                    <div class="w-full px-3 sm:px-6 lg:px-8">
+                    <div class="w-full px-3 sm:px-6 lg:px-8 space-y-4">
+                        @if(session()->has('impersonator_id'))
+                            <div class="p-3.5 rounded-2xl bg-indigo-900 text-white flex flex-wrap items-center justify-between gap-3 shadow-md">
+                                <div class="flex items-center gap-2.5 text-xs font-bold">
+                                    <i class="fas fa-user-secret text-amber-300"></i>
+                                    <span>Mode Support actif — Connecté en tant que <strong>{{ Auth::user()->name }}</strong> ({{ Auth::user()->agence->nom ?? 'Plateforme' }})</span>
+                                </div>
+                                <form method="POST" action="{{ route('super-admin.leave-impersonation') }}">
+                                    @csrf
+                                    <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-amber-400 text-slate-900 text-[11px] font-black uppercase tracking-wider hover:bg-amber-300 transition">
+                                        Revenir au Super Admin
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+
+                        @php
+                            $globalAnnouncements = collect();
+                            try {
+                                if (Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('team_member')) {
+                                    $globalAnnouncements = \App\Models\PlatformAnnouncement::visible()->latest()->take(2)->get();
+                                }
+                            } catch (\Throwable $e) {}
+                        @endphp
+
+                        @foreach($globalAnnouncements as $ann)
+                            @php
+                                $annStyles = [
+                                    'info' => 'bg-blue-50 border-blue-200 text-blue-900',
+                                    'success' => 'bg-emerald-50 border-emerald-200 text-emerald-900',
+                                    'warning' => 'bg-amber-50 border-amber-200 text-amber-900',
+                                    'danger' => 'bg-rose-50 border-rose-200 text-rose-900',
+                                ];
+                            @endphp
+                            <div class="p-3.5 rounded-2xl border {{ $annStyles[$ann->type] ?? $annStyles['info'] }} flex items-start gap-3 text-xs">
+                                <i class="fas fa-bullhorn mt-0.5"></i>
+                                <div>
+                                    <p class="font-black uppercase tracking-wide">{{ $ann->title }}</p>
+                                    <p class="mt-0.5 font-medium">{{ $ann->message }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+
                         {{ $slot }}
                     </div>
                 </main>

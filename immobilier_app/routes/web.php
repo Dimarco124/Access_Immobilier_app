@@ -19,6 +19,11 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TeamSetupController;
 use App\Http\Controllers\TeamManagementController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\SupportController;
+use App\Http\Controllers\SuperAdmin\SuperAdminDashboardController;
+use App\Http\Controllers\SuperAdmin\AgencyManagementController;
+use App\Http\Controllers\SuperAdmin\UserSupportController;
+use App\Http\Controllers\SuperAdmin\PlatformToolsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -264,6 +269,55 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Support Plateforme (Admins d'agence)
+    Route::get('/support', [SupportController::class, 'index'])->name('support.index');
+    Route::post('/support', [SupportController::class, 'store'])->name('support.store');
+
+    // Quitter le mode support (Impersonation)
+    Route::post('/super-admin/leave-impersonation', [UserSupportController::class, 'leaveImpersonation'])->name('super-admin.leave-impersonation');
 });
+
+// ============================================================================
+// ESPACE SUPER ADMIN (Gestion globale de la plateforme SaaS)
+// ============================================================================
+Route::prefix('super-admin')
+    ->name('super-admin.')
+    ->middleware(['auth', 'role:super_admin'])
+    ->group(function () {
+        Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
+
+        // Gestion des Agences
+        Route::get('/agencies', [AgencyManagementController::class, 'index'])->name('agencies.index');
+        Route::get('/agencies/export-csv', [AgencyManagementController::class, 'exportCsv'])->name('agencies.export-csv');
+        Route::get('/agencies/create', [AgencyManagementController::class, 'create'])->name('agencies.create');
+        Route::post('/agencies', [AgencyManagementController::class, 'store'])->name('agencies.store');
+        Route::get('/agencies/{agence}', [AgencyManagementController::class, 'show'])->name('agencies.show');
+        Route::get('/agencies/{agence}/edit', [AgencyManagementController::class, 'edit'])->name('agencies.edit');
+        Route::put('/agencies/{agence}', [AgencyManagementController::class, 'update'])->name('agencies.update');
+        Route::post('/agencies/{agence}/toggle-status', [AgencyManagementController::class, 'toggleStatus'])->name('agencies.toggle-status');
+        Route::delete('/agencies/{agence}', [AgencyManagementController::class, 'destroy'])->name('agencies.destroy');
+
+        // Support & Utilisateurs
+        Route::get('/users', [UserSupportController::class, 'index'])->name('users.index');
+        Route::post('/users/{user}/toggle-status', [UserSupportController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::post('/users/{user}/reset-password', [UserSupportController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{user}/impersonate', [UserSupportController::class, 'impersonate'])->name('users.impersonate');
+
+        // Annonces globales
+        Route::get('/announcements', [PlatformToolsController::class, 'announcements'])->name('announcements.index');
+        Route::post('/announcements', [PlatformToolsController::class, 'storeAnnouncement'])->name('announcements.store');
+        Route::post('/announcements/{announcement}/toggle', [PlatformToolsController::class, 'toggleAnnouncement'])->name('announcements.toggle');
+        Route::delete('/announcements/{announcement}', [PlatformToolsController::class, 'destroyAnnouncement'])->name('announcements.destroy');
+
+        // Tickets Support
+        Route::get('/tickets', [PlatformToolsController::class, 'tickets'])->name('tickets.index');
+        Route::post('/tickets/{ticket}/reply', [PlatformToolsController::class, 'replyTicket'])->name('tickets.reply');
+
+        // Journal d'activité & Maintenance
+        Route::get('/logs', [PlatformToolsController::class, 'logs'])->name('logs.index');
+        Route::get('/settings', [PlatformToolsController::class, 'settings'])->name('settings.index');
+        Route::post('/settings', [PlatformToolsController::class, 'updateSettings'])->name('settings.update');
+    });
 
 require __DIR__ . '/auth.php';

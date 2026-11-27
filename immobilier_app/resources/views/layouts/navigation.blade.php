@@ -13,6 +13,7 @@
             ['route' => 'messages.index', 'pattern' => 'messages.*', 'icon' => 'fas fa-envelope', 'label' => 'Messages'],
             ['route' => 'team.index', 'pattern' => 'team.*', 'icon' => 'fas fa-users-cog', 'label' => 'Gestion d\'Équipe'],
             ['route' => 'agence.parametres', 'pattern' => 'agence.parametres', 'icon' => 'fas fa-cog', 'label' => 'Réglages'],
+            ['route' => 'support.index', 'pattern' => 'support.*', 'icon' => 'fas fa-life-ring', 'label' => 'Support Plateforme'],
         ];
     } elseif (Auth::user()->hasRole('team_member')) {
         $userModules = getUserModules();

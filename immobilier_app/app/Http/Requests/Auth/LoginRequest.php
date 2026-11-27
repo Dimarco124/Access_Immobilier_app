@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\PlatformActivityLog;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -45,9 +46,35 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
+            PlatformActivityLog::record(
+                'login_failed',
+                'Tentative de connexion échouée pour ' . $this->string('email'),
+                null,
+                ['email' => (string) $this->string('email')]
+            );
+
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);
+        }
+
+        $user = Auth::user();
+        if ($user && !$user->hasRole('super_admin')) {
+            if ($user->is_active === false) {
+                Auth::logout();
+                PlatformActivityLog::record('login_blocked', 'Connexion refusée (compte suspendu) : ' . $user->email, $user->agence_id, [], $user->id);
+                throw ValidationException::withMessages([
+                    'email' => 'Votre compte a été suspendu par l\'administrateur de la plateforme.',
+                ]);
+            }
+
+            if ($user->agence && $user->agence->statut === 'suspendu') {
+                Auth::logout();
+                PlatformActivityLog::record('login_blocked_agency', 'Connexion refusée (agence suspendue) : ' . $user->email, $user->agence_id, [], $user->id);
+                throw ValidationException::withMessages([
+                    'email' => 'L\'accès de votre agence a été temporairement suspendu. Veuillez contacter le support.',
+                ]);
+            }
         }
 
         RateLimiter::clear($this->throttleKey());

@@ -31,6 +31,10 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        if ($user->hasRole('super_admin')) {
+            return redirect()->route('super-admin.dashboard');
+        }
+
         $agenceId = $user->agence_id;
 
         // Dashboards spécifiques

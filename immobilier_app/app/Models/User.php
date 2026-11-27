@@ -27,6 +27,7 @@ class User extends Authenticatable
         'password',
         'agence_id',
         'telephone',
+        'is_active',
     ];
 
     public function agence()
@@ -73,6 +74,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'is_active' => 'boolean',
         ];
     }
 
