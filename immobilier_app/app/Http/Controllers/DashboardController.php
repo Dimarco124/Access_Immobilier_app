@@ -66,9 +66,9 @@ class DashboardController extends Controller
         $moisFormat = $dateFiltre->translatedFormat('F Y');
         $moisInputValue = $dateFiltre->format('Y-m');
 
-        // Liste des mois pour le sélecteur
+        // Liste des mois pour le sélecteur (inclut les 2 prochains mois pour les avances)
         $listeMois = [];
-        for ($i = 0; $i < 24; $i++) {
+        for ($i = -2; $i < 24; $i++) {
             $d = now()->subMonths($i);
             $listeMois[] = [
                 'value' => $d->format('Y-m'),

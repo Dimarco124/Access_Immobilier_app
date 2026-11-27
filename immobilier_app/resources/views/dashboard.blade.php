@@ -487,7 +487,7 @@
                                         Commission)</p>
                                 </div>
                                 <span
-                                    class="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded uppercase">{{ \Carbon\Carbon::now()->translatedFormat('F Y') }}</span>
+                                    class="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded uppercase">{{ $moisFormat }}</span>
                             </div>
                             <div id="proprietaireReversementChart" class="w-full" style="min-height: 350px;"></div>
                         </div>
