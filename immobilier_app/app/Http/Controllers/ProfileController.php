@@ -16,6 +16,12 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        if ($request->user()->hasRole('super_admin')) {
+            return view('profile.super-admin-edit', [
+                'user' => $request->user(),
+            ]);
+        }
+
         return view('profile.edit', [
             'user' => $request->user(),
         ]);
@@ -49,6 +55,11 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Le Super Admin ne peut pas supprimer son compte via cette page
+        if ($request->user()->hasRole('super_admin')) {
+            return Redirect::route('profile.edit')->withErrors(['account' => 'Le compte Super Admin ne peut pas être supprimé via cette interface.']);
+        }
+
         // Les membres d'équipe ne peuvent pas supprimer leur propre compte
         if ($request->user()->hasRole('team_member')) {
             return Redirect::route('profile.edit')->withErrors(['account' => 'Votre compte est géré par votre agence. Veuillez contacter un administrateur.']);
