@@ -1,100 +1,109 @@
 <x-onboarding-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-2 w-full">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="font-black text-xl md:text-2xl text-slate-900 tracking-tight uppercase">Configuration de
-                        votre agence</h2>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-                        Choisissez le mode de gestion de votre agence.
-                    </p>
-                </div>
-                <div
-                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest">
-                    Étape 1/4
-                </div>
+        {{-- Barre de progression stylée --}}
+        <div class="flex items-center gap-2 mb-5">
+            <div class="step-dot done"><i class="fas fa-check text-[10px]"></i></div>
+            <div class="step-line done"></div>
+            <div class="step-dot pending">2</div>
+            <div class="step-line pending"></div>
+            <div class="step-dot pending">3</div>
+            <div class="step-line pending"></div>
+            <div class="step-dot pending">4</div>
+        </div>
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-2">
+            <div>
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest mb-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                    Étape 1 sur 4
+                </span>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Configuration de votre agence</h2>
+                <p class="text-sm text-slate-500 font-medium mt-1">Choisissez le mode de gestion qui correspond à votre organisation.</p>
             </div>
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-5xl mx-auto space-y-12">
-            <form action="{{ route('team-setup.store-mode') }}" method="POST">
-                @csrf
+    <div class="max-w-4xl mx-auto">
+        <form action="{{ route('team-setup.store-mode') }}" method="POST" class="space-y-6">
+            @csrf
 
-                <div class="grid md:grid-cols-2 gap-6">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="mode" value="solo" class="sr-only peer" {{ old('mode', 'solo') === 'solo' ? 'checked' : '' }}>
-                        <div
-                            class="premium-card h-full flex flex-col justify-between border border-slate-200 p-8 transition-all duration-300 peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500 peer-checked:bg-blue-50 hover:border-slate-300">
-                            <div class="space-y-4">
-                                <div
-                                    class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-700">
-                                    <i class="fas fa-user text-3xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Je gère seul
-                                    </h3>
-                                    <p class="mt-2 text-sm text-slate-600">Accès complet à tous les modules de l'agence.
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="mt-4 text-sm text-slate-500 font-semibold">Parfait si vous souhaitez piloter
-                                l'agence seul.</div>
+            {{-- Choix du mode --}}
+            <div class="grid md:grid-cols-2 gap-5">
+                {{-- Solo --}}
+                <label class="cursor-pointer group">
+                    <input type="radio" name="mode" value="solo" class="sr-only peer" {{ old('mode', 'solo') === 'solo' ? 'checked' : '' }}>
+                    <div class="h-full relative bg-white border-2 border-slate-200 rounded-2xl p-7 transition-all duration-300
+                        peer-checked:border-blue-500 peer-checked:ring-4 peer-checked:ring-blue-500/10 peer-checked:bg-gradient-to-br peer-checked:from-blue-50 peer-checked:to-indigo-50
+                        hover:border-slate-300 hover:shadow-lg hover:shadow-slate-100">
+                        {{-- Checkmark --}}
+                        <div class="absolute top-4 right-4 w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center transition-all
+                            peer-checked:border-blue-600 peer-checked:bg-blue-600 group-[.peer:checked~&]:bg-blue-600">
                         </div>
-                    </label>
-
-                    <label class="cursor-pointer">
-                        <input type="radio" name="mode" value="team" class="sr-only peer" {{ old('mode') === 'team' ? 'checked' : '' }}>
-                        <div
-                            class="premium-card h-full flex flex-col justify-between border border-slate-200 p-8 transition-all duration-300 peer-checked:border-blue-500 peer-checked:ring-1 peer-checked:ring-blue-500 peer-checked:bg-blue-50 hover:border-slate-300">
-                            <div class="space-y-4">
-                                <div
-                                    class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                                    <i class="fas fa-users text-3xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Nous sommes
-                                        une équipe</h3>
-                                    <p class="mt-2 text-sm text-slate-600">Définissez les responsabilités de chaque
-                                        membre.</p>
-                                </div>
+                        <div class="space-y-5">
+                            <div class="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center text-slate-600 shadow-sm
+                                peer-checked:from-blue-100 peer-checked:to-indigo-100 peer-checked:text-blue-700">
+                                <i class="fas fa-user-tie text-2xl"></i>
                             </div>
-                            <div class="mt-4 text-sm text-slate-500 font-semibold">Choisissez cette option pour
-                                organiser votre équipe.</div>
-                        </div>
-                    </label>
-                </div>
-
-                @error('mode')
-                    <div class="mb-6 premium-card p-4 bg-red-50 border-2 border-red-200 mt-4">
-                        <div class="flex items-start gap-3">
-                            <i class="fas fa-exclamation-circle text-red-600"></i>
-                            <p class="text-sm text-red-700 font-bold">{{ $message }}</p>
+                            <div>
+                                <h3 class="text-lg font-black text-slate-900 uppercase tracking-tight mb-2">Je gère seul</h3>
+                                <p class="text-sm text-slate-600 leading-relaxed">Accès complet à tous les modules de l'agence. Idéal pour un gestionnaire unique.</p>
+                            </div>
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest">
+                                <i class="fas fa-check-circle text-emerald-500"></i>
+                                Accès complet
+                            </div>
                         </div>
                     </div>
-                @enderror
+                </label>
 
-                <div class="premium-card p-6 bg-slate-50 border border-slate-200 mt-8">
-                    <div class="flex items-start gap-4">
-                        <i class="fas fa-info-circle text-slate-500 text-xl mt-1"></i>
-                        <div>
-                            <p class="text-sm text-slate-900 font-bold mb-1">Vous pourrez changer ce paramètre plus tard
-                            </p>
-                            <p class="text-xs text-slate-600">L'onglet de gestion d'équipe restera accessible pour faire
-                                évoluer votre organisation.</p>
+                {{-- Équipe --}}
+                <label class="cursor-pointer group">
+                    <input type="radio" name="mode" value="team" class="sr-only peer" {{ old('mode') === 'team' ? 'checked' : '' }}>
+                    <div class="h-full relative bg-white border-2 border-slate-200 rounded-2xl p-7 transition-all duration-300
+                        peer-checked:border-blue-500 peer-checked:ring-4 peer-checked:ring-blue-500/10 peer-checked:bg-gradient-to-br peer-checked:from-blue-50 peer-checked:to-indigo-50
+                        hover:border-slate-300 hover:shadow-lg hover:shadow-slate-100">
+                        <div class="space-y-5">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                                <i class="fas fa-users text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-black text-slate-900 uppercase tracking-tight mb-2">Nous sommes une équipe</h3>
+                                <p class="text-sm text-slate-600 leading-relaxed">Définissez les responsabilités de chaque membre et organisez votre équipe par modules.</p>
+                            </div>
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest">
+                                <i class="fas fa-users text-blue-500"></i>
+                                Gestion d'équipe
+                            </div>
                         </div>
                     </div>
-                </div>
+                </label>
+            </div>
 
-                <div class="flex justify-end mt-6">
-                    <button type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition">
-                        Suivant
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
+            @error('mode')
+                <div class="p-4 rounded-2xl bg-red-50 border border-red-200 flex items-start gap-3">
+                    <i class="fas fa-exclamation-circle text-red-500 mt-0.5"></i>
+                    <p class="text-sm text-red-700 font-semibold">{{ $message }}</p>
                 </div>
-            </form>
-        </div>
+            @enderror
+
+            {{-- Info --}}
+            <div class="bg-blue-50/60 border border-blue-100 rounded-2xl p-5 flex items-start gap-4">
+                <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                    <i class="fas fa-info"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-black text-slate-800 mb-1">Vous pourrez changer ce paramètre plus tard</p>
+                    <p class="text-xs text-slate-500">L'onglet de gestion d'équipe restera accessible pour faire évoluer votre organisation.</p>
+                </div>
+            </div>
+
+            {{-- Action --}}
+            <div class="flex justify-end pt-2">
+                <button type="submit"
+                    class="inline-flex items-center gap-3 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-black uppercase tracking-widest shadow-lg shadow-blue-200 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-200 transition-all duration-200 hover:-translate-y-0.5">
+                    Suivant
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
     </div>
 </x-onboarding-layout>
