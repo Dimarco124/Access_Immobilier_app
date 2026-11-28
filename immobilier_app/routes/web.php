@@ -37,12 +37,14 @@ Route::get('/csrf-refresh', function () {
 
 // Inscription Agence
 Route::get('/inscription-agence', [AgencyRegisterController::class, 'showRegistrationForm'])->name('register.agency');
-Route::post('/inscription-agence', [AgencyRegisterController::class, 'register'])->name('register.agency.post');
+Route::post('/inscription-agence', [AgencyRegisterController::class, 'register'])
+    ->middleware('throttle:10,1')
+    ->name('register.agency.post');
 
 // ============================================================================
-// ROUTES SETUP ÉQUIPE (après inscription)
+// ROUTES SETUP ÉQUIPE (après inscription - Admin uniquement)
 // ============================================================================
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/team-setup/choose-mode', [TeamSetupController::class, 'chooseMode'])->name('team-setup.choose-mode');
     Route::post('/team-setup/store-mode', [TeamSetupController::class, 'storeMode'])->name('team-setup.store-mode');
     Route::get('/team-setup/select-modules', [TeamSetupController::class, 'selectModules'])->name('team-setup.select-modules');
@@ -138,6 +140,7 @@ Route::middleware(['auth', 'role:admin|team_member', 'module:commercial,viewer']
     Route::get('/locataires/{locataire}', [LocataireController::class, 'show'])->name('locataires.show');
     Route::get('/locataires-imprimer', [LocataireController::class, 'printList'])->name('locataires.print');
     Route::get('/contrats', [ContratController::class, 'index'])->name('contrats.index');
+    Route::get('/contrats/imprimer', [ContratController::class, 'printList'])->name('contrats.print');
     // Note: contrats.show moved to shared routes to allow proprietaire access
 });
 
@@ -229,7 +232,6 @@ Route::middleware('auth')->group(function () {
 
     // Contrats (consultation autorisée pour locataires, propriétaires, admin, team_member)
     Route::get('/mes-contrats', [ContratController::class, 'mesContrats'])->name('contrats.mes-contrats');
-    Route::get('/contrats/imprimer', [ContratController::class, 'printList'])->name('contrats.print');
     Route::get('/contrats/{contrat}', [ContratController::class, 'show'])->name('contrats.show'); // Access control in controller
     Route::get('/contrats/{contrat}/bail', [ContratController::class, 'showBail'])->name('contrats.bail');
     Route::get('/contrats/{contrat}/etat-des-lieux-print', [ContratController::class, 'printEtatDesLieux'])->name('contrats.etat-des-lieux.print');
@@ -251,6 +253,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/create', [MessageController::class, 'create'])->name('messages.create');
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/{message}/attachment', [MessageController::class, 'attachment'])->name('messages.attachment');
     Route::get('/messages/{user}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{user}/reply', [MessageController::class, 'reply'])->name('messages.reply');
     Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
@@ -270,9 +273,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Support Plateforme (Admins d'agence)
-    Route::get('/support', [SupportController::class, 'index'])->name('support.index');
-    Route::post('/support', [SupportController::class, 'store'])->name('support.store');
+    // Support Plateforme (Admins d'agence uniquement)
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/support', [SupportController::class, 'index'])->name('support.index');
+        Route::post('/support', [SupportController::class, 'store'])->middleware('throttle:15,1')->name('support.store');
+    });
 
     // Quitter le mode support (Impersonation)
     Route::post('/super-admin/leave-impersonation', [UserSupportController::class, 'leaveImpersonation'])->name('super-admin.leave-impersonation');

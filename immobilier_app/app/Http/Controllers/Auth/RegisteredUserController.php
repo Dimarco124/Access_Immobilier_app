@@ -18,9 +18,9 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): View
+    public function create(): View|RedirectResponse
     {
-        return view('auth.register');
+        return redirect()->route('register.agency');
     }
 
     /**
@@ -30,29 +30,6 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        // CORRECTION CRITIQUE : Assigner un rôle par défaut
-        // Sans rôle, l'utilisateur n'a pas d'accès défini
-        // Note: Cette route ne devrait pas être utilisée en production
-        // Utiliser plutôt AgencyRegisterController pour admin ou créer via admin pour autres rôles
-        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'locataire']);
-        $user->assignRole('locataire'); // Rôle par défaut le plus restrictif
-
-        event(new Registered($user));
-
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        abort(403, 'L\'inscription directe est désactivée. Veuillez créer une agence.');
     }
 }

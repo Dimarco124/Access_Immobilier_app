@@ -132,9 +132,9 @@ class MessageController extends Controller
             'contenu' => $validated['contenu'],
         ];
 
-        // Gérer la pièce jointe
+        // Gérer la pièce jointe (stockage privé)
         if ($request->hasFile('piece_jointe')) {
-            $path = $request->file('piece_jointe')->store('messages', 'public');
+            $path = $request->file('piece_jointe')->store('messages', 'local');
             $data['piece_jointe_url'] = $path;
         }
 
@@ -184,7 +184,7 @@ class MessageController extends Controller
         ];
 
         if ($request->hasFile('piece_jointe')) {
-            $path = $request->file('piece_jointe')->store('messages', 'public');
+            $path = $request->file('piece_jointe')->store('messages', 'local');
             $data['piece_jointe_url'] = $path;
         }
 
@@ -204,14 +204,43 @@ class MessageController extends Controller
             abort(403, 'Non autorisé');
         }
 
-        // Supprimer la pièce jointe si elle existe
+        // Supprimer la pièce jointe si elle existe (disque privé + fallback public)
         if ($message->piece_jointe_url) {
+            Storage::disk('local')->delete($message->piece_jointe_url);
             Storage::disk('public')->delete($message->piece_jointe_url);
         }
 
         $message->delete();
 
         return back()->with('success', 'Message supprimé');
+    }
+
+    // Télécharger/afficher une pièce jointe de manière sécurisée
+    public function attachment(Message $message)
+    {
+        $user = Auth::user();
+
+        if (
+            $message->agence_id !== $user->agence_id ||
+            ($message->expediteur_id !== $user->id && $message->destinataire_id !== $user->id)
+        ) {
+            abort(403, 'Accès non autorisé à cette pièce jointe.');
+        }
+
+        $path = $message->piece_jointe_url;
+        if (!$path) {
+            abort(404);
+        }
+
+        if (Storage::disk('local')->exists($path)) {
+            return Storage::disk('local')->response($path);
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->response($path);
+        }
+
+        abort(404, 'Fichier introuvable.');
     }
 
     // Marquer comme lu

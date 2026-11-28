@@ -217,7 +217,16 @@ class ContratController extends Controller
             return back()->withErrors('Ce bien n\'est pas disponible pour la location.')->withInput();
         }
 
-        $data = $request->all();
+        $data = $request->only([
+            'locataire_id',
+            'bien_id',
+            'date_debut',
+            'date_fin',
+            'montant_loyer_actuel',
+            'montant_caution',
+            'nombre_mois_avance',
+            'frais_dossier',
+        ]);
         $data['agence_id'] = Auth::user()->agence_id;
         $data['statut'] = 'Actif';
         $data['unite_id'] = null;
@@ -441,6 +450,10 @@ class ContratController extends Controller
      */
     public function printList(Request $request)
     {
+        if (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('team_member')) {
+            abort(403, 'Accès refusé.');
+        }
+
         $query = Contrat::where('agence_id', Auth::user()->agence_id)
             ->with(['locataire.user', 'bien.familleDeBien']);
             

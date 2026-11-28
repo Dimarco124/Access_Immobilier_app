@@ -53,7 +53,16 @@ class BienController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $data = $request->all();
+        $data = $request->only([
+            'famille_de_bien_id',
+            'nom_bien',
+            'type_bien',
+            'adresse',
+            'taux_commission_agence',
+            'prix_visite',
+            'loyer_mensuel',
+            'description',
+        ]);
         $data['agence_id'] = Auth::user()->agence_id;
 
         // Récupérer la famille pour obtenir le propriétaire
@@ -243,7 +252,15 @@ class BienController extends Controller
             'statut' => 'required|in:Disponible,Loué,En maintenance',
         ]);
 
-        $bien->update($request->all());
+        $bien->update($request->only([
+            'nom_bien',
+            'type_bien',
+            'adresse',
+            'prix_visite',
+            'loyer_mensuel',
+            'description',
+            'statut',
+        ]));
 
         return back()->with('success', 'Sous-bien mis à jour avec succès.');
     }

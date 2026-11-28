@@ -55,7 +55,7 @@
                                 <p class="text-sm font-medium leading-relaxed">{{ $message->contenu }}</p>
                                 @if($message->piece_jointe_url)
                                 <div class="mt-2 pt-2 border-t {{ $estMonMessage ? 'border-white/10' : 'border-slate-200' }}">
-                                    <a href="{{ Storage::url($message->piece_jointe_url) }}" target="_blank" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:opacity-70 transition-opacity">
+                                    <a href="{{ route('messages.attachment', $message) }}" target="_blank" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:opacity-70 transition-opacity">
                                         <i class="fas fa-paperclip"></i> Piece Jointe
                                     </a>
                                 </div>

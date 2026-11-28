@@ -74,7 +74,11 @@ class ParametreController extends Controller
             'rib' => 'nullable|string',
         ]);
 
-        Auth::user()->agence->comptesBancaires()->create($request->all());
+        Auth::user()->agence->comptesBancaires()->create($request->only([
+            'nom_banque',
+            'numero_compte',
+            'rib',
+        ]));
 
         return redirect()->back()->with('success', 'Compte bancaire ajouté.');
     }

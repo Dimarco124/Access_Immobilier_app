@@ -100,6 +100,8 @@ class UserSupportController extends Controller
 
         $request->session()->put('impersonator_id', $superAdminId);
         Auth::login($user);
+        $request->session()->regenerate();
+        $request->session()->put('impersonator_id', $superAdminId);
 
         return redirect()->route('dashboard')
             ->with('success', "Mode Support activé : vous naviguez en tant que {$user->name}.");
@@ -129,8 +131,10 @@ class UserSupportController extends Controller
         );
 
         Auth::login($superAdmin);
+        $request->session()->regenerate();
 
         return redirect()->route('super-admin.dashboard')
             ->with('success', 'Vous êtes revenu dans votre espace Super Admin.');
     }
 }
+
